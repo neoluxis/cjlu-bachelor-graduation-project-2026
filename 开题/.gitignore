@@ -1,5 +1,9 @@
 *.log
 *.aux
 *.synctex.gz
-
 *.pdf
+*.bbl
+*.bcf
+*.run.xml
+*.blg
+review_refs.bib.lock

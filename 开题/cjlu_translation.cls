@@ -11,7 +11,7 @@
   \begin{tikzpicture}[remember picture,overlay]
     \node[anchor=west,font=\cjlu@bodyHeadFont] at ([xshift=86.15pt,yshift=-83.48pt]current page.north west) {外文翻译#1\raisebox{-1.5pt}{#2}};
   \end{tikzpicture}
-  \vspace*{1.2cm}\par\noindent
+  \par\noindent
 }
 
 \endinput
