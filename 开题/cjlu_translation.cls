@@ -3,6 +3,7 @@
 
 \LoadClass[UTF8,a4paper,12pt]{ctexart}
 \RequirePackage{cjlu_cover}
+\RequirePackage{cjlu_body}
 
 \newcommand{\translationpage}[2]{%
   \clearpage

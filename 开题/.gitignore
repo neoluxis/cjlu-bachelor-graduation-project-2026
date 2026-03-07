@@ -4,6 +4,7 @@
 *.pdf
 *.bbl
 *.bcf
+*.out
 *.run.xml
 *.blg
 review_refs.bib.lock

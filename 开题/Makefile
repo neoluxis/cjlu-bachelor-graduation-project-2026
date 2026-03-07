@@ -12,6 +12,9 @@ all: $(PDFS)
 # Usage: make 文献综述.pdf
 %.pdf: %.tex
 	$(TEX) $(TEXFLAGS) "$<"
+	BASE=$$(basename "$<" .tex); \
+	if [ -f "$${BASE}.bcf" ]; then biber "$${BASE}"; fi
+	$(TEX) $(TEXFLAGS) "$<"
 	$(TEX) $(TEXFLAGS) "$<"
 
 clean:

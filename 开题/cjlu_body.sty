@@ -1,0 +1,31 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{cjlu_body}[2026/03/07 CJLU shared main body style]
+\RequirePackage{setspace}
+\RequirePackage{titlesec}
+\RequirePackage{zhnumber}
+\setCJKfamilyfont{song}{SimSun}[BoldFont=SimHei]
+\setlength{\parindent}{2.5em}
+\setlength{\parskip}{0pt}
+\renewcommand{\baselinestretch}{1.25}
+
+\renewcommand{\thesection}{\zhdigits{\arabic{section}}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+\newcommand{\cjlu@sectionfont}{\CJKfamily{song}\bfseries\zihao{-3}\selectfont}
+\newcommand{\cjlu@subsectionfont}{\CJKfamily{song}\zihao{-4}\selectfont}
+\newcommand{\cjlu@subsubsectionfont}{\CJKfamily{song}\zihao{-4}\selectfont}
+
+\titleformat{\section}[hang]
+  {\cjlu@sectionfont\setstretch{1.5}}
+  {\thesection、}{0pt}{}
+\titlespacing*{\section}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex}
+
+\titleformat{\subsection}[hang]
+  {\cjlu@subsectionfont\setstretch{1}}
+  {\thesubsection\quad}{0pt}{}
+\titlespacing*{\subsection}{0pt}{1.5ex}{1ex}
+
+\titleformat{\subsubsection}[hang]
+  {\cjlu@subsubsectionfont\setstretch{1}}
+  {\thesubsubsection\quad}{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{1ex}{1ex}
