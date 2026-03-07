@@ -1,5 +1,5 @@
-TEX := xelatex
-TEXFLAGS := -interaction=nonstopmode -halt-on-error
+TEX := latexmk
+TEXFLAGS := -interaction=nonstopmode -halt-on-error -xelatex
 
 # Compile only TeX files in the current directory.
 TEXS := $(wildcard *.tex)
@@ -18,7 +18,7 @@ all: $(PDFS)
 	$(TEX) $(TEXFLAGS) "$<"
 
 clean:
-	rm -f *.aux *.bbl *.bcf *.blg *.fdb_latexmk *.fls *.idx *.ilg *.ind *.lof *.log *.lot *.out *.run.xml *.synctex.gz *.toc *.xdv
+	rm -f *.aux *.bbl *.bcf *.blg *.fdb_latexmk *.fls *.idx *.ilg *.ind *.lof *.log *.lot *.out *.run.xml *.synctex.gz *.toc *.xdv *.nav *.snm
 
 distclean: clean
 	rm -f $(PDFS)

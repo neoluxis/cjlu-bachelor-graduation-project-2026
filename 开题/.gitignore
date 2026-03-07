@@ -7,4 +7,10 @@
 *.out
 *.run.xml
 *.blg
+*.fls
+*.fdb_latexmk
+*.xdv
+*.nav
+*.snm
+*.toc
 review_refs.bib.lock
