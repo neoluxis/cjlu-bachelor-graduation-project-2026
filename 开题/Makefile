@@ -14,31 +14,15 @@ all: $(PDFS)
 	$(TEX) $(TEXFLAGS) "$<"
 
 clean:
-	@find . -type f \
-		-name "*.aux" -o \
-		-name "*.bbl" -o \
-		-name "*.bcf" -o \
-		-name "*.blg" -o \
-		-name "*.fdb_latexmk" -o \
-		-name "*.fls" -o \
-		-name "*.idx" -o \
-		-name "*.ilg" -o \
-		-name "*.ind" -o \
-		-name "*.lof" -o \
-		-name "*.log" -o \
-		-name "*.lot" -o \
-		-name "*.out" -o \
-		-name "*.run.xml" -o \
-		-name "*.synctex.gz" -o \
-		-name "*.toc" -o \
-		-name "*.xdv" -o \
-		-name "*.nav" -o \
-		-name "*.snm" | xargs rm -fv \
+	@find . -type d \( -name "templates" -o -name "assets" -o -name ".git" -o -name "【模板】文献翻译-文献综述-开题报告" \) -prune \
+	-o -type f -regex '.*\.\(aux\|log\|fls\|fdb_latexmk\|xdv\|toc\|nav\|snm\|out\|bbl\|blg\)' \
+	-exec rm -fv {} + \
 	| wc -l | awk '{print $$1 " intermediate files removed."}'
 
 distclean: clean
-	@find . -type f -name "*.pdf" | xargs rm -fv \
-		| wc -l | awk '{print $$1 " PDF files removed."}'
+	@find . -type d \( -name "templates" -o -name "assets" -o -name ".git" -o -name "【模板】文献翻译-文献综述-开题报告" \) -prune \
+	-o -type f -name "*.pdf" -exec rm -fv {} + \
+	| wc -l | awk '{print $$1 " PDF files removed."}'
 
 rebuild: distclean all
 
