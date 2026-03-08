@@ -1,0 +1,205 @@
+% Advanced Faster-RCNN Model for Automated Recognition and Detection of Weld Defects on Limited X-Ray Image Dataset
+\translationpage{译文}{2}
+
+计算机辅助焊接缺陷识别通过解决手动检查速度慢且容易出错的缺点，正在改变无损检测领域。
+该技术为检测管道状况变化和结构损坏提供了可靠的解决方案。
+虽然传统的神经网络在精确的故障定位方面存在不足，但基于深度学习的目标检测技术可以填补这一空白。
+在不依赖预先存在的基准的情况下解决实际工业问题，特别是目视检查 X 射线焊接数据库，是该领域的一项重大挑战。
+此外，我们的焊接数据质量较差，每张图像中都充满了小而粘的孔隙，这带来了与选择适当的深度神经网络目标检测器相关的几个问题。
+这是另一个需要解决的挑战。为了应对这些挑战，我们引入了一种基于著名的 Faster RCNN 架构的新颖方法，以开发专门用于焊接缺陷检测和识别的模型。
+这项研究深入探讨了这种新采用的方法的内部运作方式。
+在我们的研究中，我们对该模型进行了彻底的参数化、训练、测试和验证。
+通过与 YOLO 和 DCNN 模型的比较分析，我们的方法脱颖而出，凸显了我们基于 Faster RCNN 的系统的优越性。
+通过评估其稳健性和效率，我们的研究表明，对于这种特定的小而粘性孔隙缺陷类型，Faster RCNN 模型在焊接缺陷检测和定位方面优于同类模型。
+这证明了在该领域有效设定了新标准。
+
+% 1. Intro
+在输水管道建设过程中，需要通过内部和外部焊接操作将金属部件连接在一起。
+这些关键焊接任务需要由人工专家进行检查，他们能够识别各种类型的焊接缺陷，包括裂纹和气孔，
+这些缺陷可能来源于焊接接头的不完善。
+这些问题可能导致管道使用寿命缩短。
+因此，为保证管道的最佳质量，必须进行质量控制。
+管道检测必须在不破坏构件的情况下进行。
+目前，在线无损检测（NDT）通常结合机器视觉技术进行。
+工业领域使用检测技术验证材料、结构或系统是否满足规定的要求，同时确保原始部件的完整性不受破坏。
+在该领域中，焊缝通常通过射线检测等无损检测技术进行检查，射线通过样品以识别缺陷。
+X 射线成像特别适合检测薄材料，能够提供高分辨率和清晰度，从而精确检测缺陷。
+另一方面，伽马射线成像用于检测较厚的部件。
+为了便于分析和处理，检测结果可以通过胶片射线成像、计算机射线成像，或计算机断层扫描进行数字化。
+然而，数字化图像通常质量较低且对比度较差，这使焊缝缺陷检测变得十分繁琐。
+不幸的是，这些特性会影响目标的解释、分类和识别。
+因此，引入计算机视觉的人工智能技术来辅助专家评估检测结果。
+在这种背景下，这些方法成为焊缝缺陷检测和定位的重要研究手段，能够替代人工专家完成相关工作，
+并提供一种客观且成本较低的替代方案。
+为了全面理解图像内容，我们的目标不仅仅是进行图像分类，还需要精确估计每个图像中目标的类别和位置。
+这种方法通常被称为目标检测，它涵盖了多种子任务，如人脸检测、行人检测和脊柱检测。
+目标检测是计算机视觉领域的重要方向，为理解图像和视频提供有价值的洞察。
+它的重要性在图像分类、人类行为分析、人脸识别和自动驾驶等应用中尤为明显。
+神经网络及相关学习系统的发展极大影响了网络算法的发展，并彻底改变了目标识别技术。
+然而，多样的视角、遮挡、姿态和光照条件使得精确目标识别与定位成为复杂任务。
+因此，这一领域近年来受到研究人员和实践者的广泛关注。
+目标检测包含两个主要任务：
+确定图像中目标的空间位置（目标定位），
+以及为每个目标分配正确的类别标签（目标分类）。
+随着深度神经网络（DNN）的出现，该领域取得了重大进展，
+尤其是基于区域的卷积神经网络（R-CNN）的提出。
+这些创新大幅提高了目标检测与识别的性能，实现了更精确和高效的目标定位与分类。
+相比浅层网络，深层架构能够学习更复杂的特征。
+强大的表达能力和稳健的学习能力使算法能够自动学习有用的目标特征，无需手动设计特征。
+
+许多改进模型基于 R-CNN 框架被提出，这些模型同时优化分类任务和边界框回归。
+Fast R-CNN 利用子网格生成区域候选，从而实现精确的目标定位和分类。
+另一方面，YOLO（You Only Look Once）通过固定网格回归方法进行目标识别，
+实现实时目标检测，
+适用于 Google Photos 和 Pinterest Visual Search 等消费产品。
+这些方法在移动设备上也能实现快速高效的性能。
+此外，预训练模型的出现提高了识别性能，使实现准确目标识别和实时渲染更加容易。
+然而，专业人员在选择最适合其应用的架构时可能仍面临挑战。
+标准指标如平均精度均值（mAP）提供的洞察有限，
+而计算实现、执行时间和内存消耗等因素同样在判断视觉系统适用性时起关键作用。
+
+事实上，焊接领域精度和准确性问题一方面由于焊接缺陷类别繁多，
+另一方面由于提取特征不足以获得高质量识别，从而无法有效检测缺陷。
+传统机器学习算法已被广泛研究和应用，遵循传统 ML 应用方案并使用特征挖掘技术。
+尽管某些 ML 算法如人工神经网络（ANN）耗时且精度较低，但其实现简单仍受到认可。
+然而，随着深度学习的兴起，利用大规模数据集和自动特征提取显著提升了缺陷检测能力。
+在同一背景下，已有研究致力于优化此类控制方法，目标是创建自动化 X 射线图像检测与分析系统，
+但深度学习技术在焊缝缺陷检测中的应用仍面临挑战，相关研究较少且缺乏成熟方法。
+
+文献中已有关于基于预训练 CNN 模型的焊缝缺陷检测研究。
+然而，为特定数据集采用专用深度学习架构仍是一个重要挑战，可从不同角度解决。
+为克服前人工作的局限并应对数据集复杂性，我们利用迁移学习，应用预训练网络。
+
+我们的目标是定制适合特定应用场景的网络模型，并在新数据集上实现多种缺陷的高精度检测。
+通常，目标检测过程适用于 RGB 图像且目标相对分离，此时检测算法较为简单。
+相反，X 射线数据集中的小尺寸粘连缺陷使检测过程更复杂。
+近年来，基于深度学习的感知应用取得突破，但从零构建模型仍需要大量数据。
+例如，Faster R-CNN 约需 150,000 张自然图像以达到最佳性能，而训练数据不足会影响新技术的使用。
+
+X 射线焊接图像数量不足是需要调整的挑战，尤其是图像质量低且类型多样时。
+此外，每张图像中存在大量小气孔缺陷，也带来选择合适深度神经网络检测器及其性能的难题。
+因此，基于深度学习的焊缝缺陷检测仍属于新兴技术。
+本文证明，即使使用非常小的训练数据集，也能通过利用在自然图像上预训练的深度网络实现高精度和高效率。
+我们使用 453 张 X 射线焊接图像对 Faster R-CNN 网络进行微调，并与传统和新型检测模型进行比较。
+本文旨在探讨执行时间和测试结果，以及测试过程中的性能表现。
+在本研究中，进行了综合分析，以概述 AI 模型及其在多种应用领域包括焊接检测中的性能特点。
+本文内容安排如下：
+第二部分介绍深度学习背景及 CNN 基本结构。
+第三部分详细介绍目标检测的架构和结构。
+第四至第六部分展示 Faster R-CNN 的实验结果并与其他模型进行比较。
+最后，第七部分给出结论并概述未来研究方向。
+
+\translationpage{原文}{2}
+
+Computer-aided weld defect recognition is transforming the field of Non-Destructive Testing
+by addressing the shortcomings of slow and error-prone manual inspections.
+This technology provides a reliable solution for detecting changes in pipeline conditions and structural damage.
+While conventional neural networks fall short in precise fault localization,
+deep learningbased object detection techniques step in to fill the gap.
+Addressing a real-industrial problem, particularly visually inspecting an X-ray welding database,
+without relying on a pre-existing benchmark presents a significant challenge in this field.
+Additionally, the poor quality of our welding data, which is riddled with small, sticky porosity in each image,
+poses several issues related to selecting the appropriate deep neural network object detector.
+This is yet another challenge that needs to be tackled.
+To direct these challenges, we introduced a novel approach based on the renowned Faster RCNN architecture
+to develop a model specifically designed for weld defect detection and recognition.
+This study dives deep into the inner workings of this newly adopted methodology.
+In our research, we have thoroughly parameterized, trained, tested, and validated this model.
+Our approach stands out through a comparative analysis with YOLO and DCNN models, highlighting the superiority of our Faster RCNN-based system.
+By evaluating its robustness and efficiency, our study reveals that the Faster RCNN model outperforms its counterparts
+in weld defect detection and localization for this specific small and sticky porosity defect type.
+This stands as a testament to effectively setting a new standard in this area.
+
+% 1. Intro
+In the process of constructing water pipes, both internal and external welding operations are performed to secure the metal parts together.
+These critical welding tasks are subject to scrutiny by human experts who possess the ability to identify various types of welding defects, including cracks and porosities, which can arise from imperfections in the joints.
+This fact could lead to the limited life of the pipes.
+So, quality control is necessary to guarantee the best quality of the pipelines.
+The piping check must be carried out without destroying the component.
+Online nondestructive testing (NDT) is currently tested using machine vision techniques.
+Industries employ inspection techniques to verify that the required specifications of a material, structure, or system are being met,
+all while ensuring the integrity of the original part remains intact.
+Within this field, welds undergo inspection through NDT techniques like radiography,
+wherein the radiation is passed through the specimen to identify defects.
+X-ray imaging is particularly effective for inspecting thin materials,
+offering detailed visibility and resolution to detect defects with precision.
+On the other hand, gamma-ray imaging is employed when dealing with thicker components.
+To facilitate analysis and processing, the results can be digitized using film radiography,
+computed radiography,
+or computed tomography.
+However, digitized images often exhibit low quality and diminished contrast,
+making the examination of weld defects a laborious task.
+Unfortunately, these characteristics interfere with object interpretation, classification, and recognition.
+As a result, artificial intelligence technology for computer vision applications is invented
+to help the expert evaluate the results.
+In this context, these methods are essential research approaches
+that replace the skilled professional in weld defect detecting and localizing,
+offering a neutral and cost-effective alternative.
+To achieve a complete comprehension of the image, our objective extends beyond image categorization.
+We strive to precisely estimate the identities and precise positions of objects present within each image.
+This methodology is commonly referred to as object detection,
+encompassing various sub-tasks such as face detection, pedestrian detection, and spinal detection.
+Object detection is a crucial field in computer vision,
+offering valuable insights for comprehending images and videos.
+Its significance is evident in various applications such as image classification, human behavior analysis, facial recognition, and autonomous driving.
+The advancement of neural networks and related learning systems has greatly influenced the development of network algorithms and revolutionized object recognition techniques.
+However, the challenges posed by diverse viewpoints, occlusions, poses, and lighting conditions make achieving precise object recognition with accurate localization a complex task.
+As a result, this area has garnered substantial attention in recent years from researchers and practitioners alike.
+Object detection involves two primary tasks:
+determining the spatial position of objects within a frame (object location)
+and assigning the appropriate class label to each object (object classification).
+With the advent of deep neural networks (DNN) in the field, significant advancements have been made,
+particularly with the introduction of region-based convolutional neural networks (R-CNN).
+These innovations have brought about substantial improvements in the detection and recognition of objects,
+enabling more accurate and efficient object localization and classification.
+Their deeper architectures enable the learning of complicated features compared to shallow ones.
+The strength of expressiveness and the robust learning of algorithms also allow the learning representations of informative objects without having to manually design features.
+
+Many upgraded models have been suggested as R-CNN proposals,
+which jointly optimize classification tasks and bounding box regression.
+Fast R-CNN utilizes another sub-grid to generate regional proposals,
+allowing for precise object localization and classification.
+On the other hand, YOLO (You Only Look Once) performs object recognition using a fixed grid regression approach,
+enabling real-time object detection and making it suitable for consumer products such as Google Photos and Pinterest Visual Search.
+These methods have demonstrated fast and efficient performance, even on mobile devices.
+Moreover, the availability of pre-trained models with varying degrees of recognition performance improvement has made it easier to achieve accurate object recognition and real-time rendering.
+However, professionals may find it challenging to determine the best architecture for their specific application.
+Standard metrics like mean average precision (mAP) provide limited insight,
+as other factors such as computational implementation, execution time, and memory consumption also play crucial roles in determining the suitability of a vision system.
+
+In fact, this problem of precision and accuracy in the welding area is due, on the one hand, to the variety of classes of weld defects,
+on the other hand, to the fact that the characteristics generated are insufficient for obtaining a good recognition quality in order to effectively detect the fault.
+Classic machine learning (ML) algorithms have been widely researched and applied,
+following the traditional ML application scheme and employing feature mining techniques.
+Despite the time-consuming and less accurate nature of certain ML algorithms like Artificial Neural Networks (ANN),
+their ease of implementation has been recognized.
+However, with the emergence of deep learning,
+the utilization of large datasets and automatic feature extraction has significantly improved defect detection capabilities.
+In the same context, there are a number of studies aimed at optimizing such a control method with the objective of creating an automatic X-ray image inspection and analysis system,
+but the application of deep learning techniques in weld defect detection remains challenging with limited prior work or established methods in this area.
+
+Research has been conducted in the literature on deep learning models for weld defect detection based on pre-trained convolutional neural network models.
+Nevertheless, adopting a dedicated deep learning architecture for weld defect detection to suit specific data continues to pose a significant challenge that could be approached from various angles.
+In order to overcome the limitations of previous work and address the complexities of our dataset, we leverage Transfer Learning by applying a pre-trained network.
+
+Our objective is to customize a network model tailored to our specific use case and to detect multiple defects of new datasets with respectable precision.
+As the usual trade of the object detection process is applied for RGB images and generally separated objects, the detection algorithm becomes more granted.
+On the contrary, the new trade of X-ray datasets consisting of sticky defects with small sizes makes the detection procedure more complex.
+Recently, works based on deep learning have done breakthroughs in perception-based applications,
+but a big amount of data is always needed to form a model from scratch.
+For instance, Faster R-CNN demands around 150,000 natural images to obtain the highest yield,
+and lack of training data poses problems in using this new technology.
+
+The insufficiency of X-ray welding images is a challenge that needs to be addressed, especially if they are acquired with low quality and a variety of types.
+Moreover, the detection of X-ray weld defects with the abundance of small sticky porosity in every single image leads to several issues related to the selection of the proper deep neural network object detector and its performance.
+For these reasons, this technology based on a deep learning algorithm to detect defects in welds is newly done.
+In this paper, we demonstrate that by using a very small training dataset, high accuracy, and higher efficiency can be achieved by developing a deep learning network previously trained on natural images.
+So, we adjust the Faster R-CNN network using 453 X-ray welding images
+and we compare it with traditional and new models of detection.
+In this article we seek to explore execution time and testing results and why not the performance at the time of testing.
+Within this study, comprehensive research is carried out to outline the AI models and diverse properties across multiple application areas together with the welding field.
+The content of this article is organized as follows.
+Section 2 gives a brief introduction to the deep learning background and the fundamental structure of CNN.
+In Section 3, the architecture and structure of object detection are presented in detail.
+Then, the Faster R-CNN application results are shown and compared to the other models in Sections 4–6, respectively.
+At last, some concluding remarks are presented and further potential directions in the future are outlined in Section 7.

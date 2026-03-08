@@ -1,0 +1,202 @@
+% Improving the industrial defect recognition in radiographic testing by pre-training on medical radiographs
+\translationpage{译文}{1}
+
+深度学习方法在工业射线照相测试（包括焊缝、铸件和其他领域）的缺陷识别方面获得了巨大的吸引力。
+无论使用何种深度学习，使用 ImageNet 预训练的模型来加速收敛并提高识别精度都已成为标准配置。
+然而，自然图像和工业射线照片领域之间存在显着差距，这就提出了是否存在比依赖 ImageNet 预训练更好的预训练方法的问题。
+幸运的是，由于成像方法相同，医学射线照片比自然图像更类似于工业射线照片。
+在本文中，我们最初利用 CheXpert 数据集中的大量医学放射图像来训练预训练的 CNN 模型。
+然后，我们将该模型应用于两个射线照相测试场景中的四个不同任务，以验证其优势和泛化能力。
+最后，在多个数据集上的实验表明，我们的方法比 ImageNet 预训练或从头开始训练带来更多的好处，
+缺陷分类的 F1 分数提高了 3.41\%~13.72\%，缺陷分割的 mIoU 提高了 1.05\%~6.58\%。
+它表明，医学射线照片的预训练为工业缺陷识别中的各种任务提供了无成本的改进。
+
+% 1. Introduction
+放射检测（Radiographic Testing，RT）是五种基本无损检测（Non-Destructive Testing，NDT）技术之一。由于RT能够直观地显示机械构件内部缺陷的尺寸、分布及形状，因此在工业领域中得到了广泛应用，并且在某些关键领域中仍然是不可替代的检测手段。
+近年来，数字射线成像技术（Digital Radiography，DR）逐渐成熟，并成为RT领域的研究热点。DR技术的实现过程主要包括三个步骤：
+1）X射线管向被检测物体注入射线能量；
+2）数字探测器阵列（Digital Detector Array，DDA）采集射线能量与被检测物体相互作用后的结果；
+3）计算机以图像的形式显示这种相互作用的结果。
+由此可见，DR具有检测效率高、成本低、污染小等优点，并为基于视觉的内部缺陷识别提供了条件。
+
+机器视觉技术的进步使深度学习算法成为DR自动缺陷识别的主要依赖。
+Mery 等人建立了一个名为 GDXray 的公共数据集，用于支持放射图像中缺陷识别的计算机视觉算法研究。
+Chang 等人提出了一种结合柱面投影的改进分割模型，以增强对焊缝中微小尺寸缺陷的识别能力。
+为了解决焊缝射线图像中的数据不平衡问题，提出了一种名为 CECGAN 的生成对抗网络模型。
+Tang 等人利用 BCNN（双线性卷积神经网络）提升模型对铸件缺陷的分类能力。
+Du 等人提出了一种双流网络，其分割效果优于 UNet。
+Yu 等人提出了一种深度与感受野自适应选择网络，实现了铸件 X 射线图像中的端到端缺陷分割。
+Zheng 等人提出了一种 U 形显著性检测网络，用于轮胎缺陷分割。
+
+通常，上述方法使用在 ImageNet 上预训练的主干网络进行特征提取。
+使用 ImageNet 预训练权重已被证明是在多种图像识别任务中进行迁移学习的一种有效方法。
+大量研究表明，预训练的卷积神经网络（CNN）不仅可以加快模型收敛速度，还能够提高模型精度。
+当训练数据较少时，如果缺少预训练权重，模型可能无法收敛。
+
+预训练的优势来源于 CNN 能够通过大量自然图像学习到通用的特征表示。
+
+如图 1 和表 1 所示，工业射线图像与自然图像之间的差异明显大于医学射线图像与自然图像之间的差异。
+
+具体差异可以总结如下。
+
+颜色深度：由于成像方式不同，自然图像是彩色图像，而射线图像是单通道灰度图像。
+因此，ImageNet 预训练模型中提取的颜色特征在射线图像中往往失效。
+
+透视畸变：自然图像中的透视畸变较为明显。
+然而，与自然图像相比，射线成像中的透视畸变通常较小。
+被成像物体通常与 X 射线源距离相近，因此到达探测器的射线几乎是平行的。
+
+语义信息：自然图像之间差异较大，并包含丰富的语义信息。
+相比之下，由于人体组织和机械部件具有较高的结构相似性，射线图像之间的相似度较高。
+
+判别信息：自然图像识别通常依赖于识别清晰且整体性的主体对象。
+而医学射线图像中的病灶以及工业射线图像中的缺陷通常通过检测局部异常和纹理变化来识别。
+
+图像数量：自然图像容易获取和标注。
+然而，由于严重依赖专家经验，医学和工业领域的数据集标注图像数量远少于自然图像数据集。
+这些数据集规模通常从几十张到几十万张不等。
+
+例如，ImageNet 包含约 120 万张训练图像。
+CheXpert 数据集包含 22 万张胸部 X 射线图像。
+GDXray 数据集包含 1.9 万张射线图像。
+
+类别数量：病灶或缺陷的类别通常较少，一般不超过 100 类。
+而 ImageNet 中包含 1000 个物体类别。
+
+基于上述分析，自然图像与工业射线图像之间存在明显的领域差异。
+因此提出一个问题：是否存在比使用自然图像预训练模型更好的方法？
+
+然而，以往研究主要关注 CNN 结构的改进，而忽视了预训练模型本身可能带来的影响。
+因此，本文尝试通过获得更合适的预训练模型来提升 RT 中的工业缺陷识别性能。
+
+本文的主要贡献如下。
+
+1）我们首先探索使用医学射线图像预训练权重，在无需额外成本的情况下提升工业缺陷识别性能的可能性。
+
+2）我们将原本用于医学射线图像分析的预训练模型应用到两个 RT 场景中的四个具体任务：焊缝与铸件环境中的缺陷分类与缺陷分割。
+多项实验表明，相比于使用 ImageNet 预训练或从头训练，使用医学射线图像进行预训练能够带来更大的性能提升。
+
+3）我们将公开发布预训练模型，以便研究社区将该更优的预训练模型应用于其他 RT 相关任务。
+
+% 4.1
+数据集与预处理
+
+射线检测（RT）是焊缝和铸件最重要的无损检测手段。
+我们选择 GDXray-welds 和 Zju-castings 数据集来与自然图像预训练权重进行对比。
+
+GDXray-welds 数据集最初包含十张焊缝射线图及其二值缺陷标注。
+这些射线图的图像尺寸从 366 × 3512 到 1091 × 4953 不等。
+由于图像尺寸过大，我们同时裁剪原始射线图和标注图，得到 316 个小图块。
+根据标注图，我们可以轻松区分某些图块是否存在缺陷。
+因此，我们构建了一个缺陷分类任务，用于区分正常图块和缺陷图块。
+自然地，这些缺陷图块及其标注也可用于缺陷分割任务。
+
+Zju-castings 数据集收集了 3148 张铸件射线图及其对应的六个汽车零部件标签。
+所有图像尺寸均为 1000 × 1000。
+我们仍然采用上述方法处理该数据集。
+图 3 和表 2 显示了两个数据集的详细信息。
+
+上述两个数据集和四个任务不仅覆盖了典型的 RT 场景，
+还验证了在小样本或相对充足样本下的性能。
+\translationpage{原文}{1}
+Deep learning methodologies have gained substantial traction for defect recognition in industrial radiographic testing including welds, castings and other fields.
+Regardless of the deep learning utilized, it has emerged as a standard configuration to use a model pre-trained from ImageNet to accelerate convergence and enhance recognition accuracy.
+However, there is a significant gap between the domain of natural images and industrial radiographs, raising the question of whether there might be a superior pre-training method than relying on ImageNet pre-training.
+Fortunately, medical radiographs are more similar to industrial radiographs than natural images because of the same imaging method.
+In this paper, we initially utilize numerous medical radiographic images from CheXpert dataset to train a pre-trained CNN model.
+Then, we apply this model to four distinct tasks within two radiographic testing scenarios to validate its advantages and generalization capabilities.
+Finally, experiments on multiple datasets indicate that our method brings more benefits than ImageNet pre-training or training from scratch,
+with a F1 score improvement of 3.41 \%–13.72 \% for defect classification and a mIoU improvement of 1.05 \%–6.58 \% for defect segmentation.
+It demonstrates that pre-training from medical radiographs provides a cost-free improvement for all kinds of tasks in industrial defect recognition.
+
+% 1. Introduction
+Radiographic testing (RT) is one of the five basic non-destructive testing (NDT) technologies.
+Because RT can intuitively display the size, distribution and shape of internal defects in mechanical components,
+it has been widely used in industrial scenes and can not be even replaced in some crucial fields.
+In recent years, digital radiography (DR) has gradually matured and become a research hot spot in RT.
+The implementation process of DR technology includes three steps.
+1) X-ray tube injects ray energy into the tested object.
+2) Digital detector array (DDA) collects the results of the interaction between ray energy and the tested object.
+3) Computer displays the interaction results in the form of images.
+From above, DR has high detection efficiency, low cost, little pollution,
+and creates conditions for the vision-based recognition of internal defects
+
+Advancements in machine vision technology have made deep learning algorithms the primary reliance for automatic defect recognition in DR.
+Mery et al. established a public dataset called GDXray, which supports the development of computer vision algorithms for defect recognition in radiographs.
+Chang et al. proposed an improved segmentation model with cylindrical projection to strengthen the ability to recognize the minor size defects in welds.
+A GAN (Generative Adversarial Network) model named CECGAN is proposed to solve the problem of data imbalance in weld radiographs.
+Tang et al. utilize BCNN (Bilinear Convolutional Neural Networks) to improve the model’s ability to classify defects in castings.
+Du et al. proposed a dual-stream network for better segmentation results than UNet.
+Yu et al. proposed an adaptive selection network of depth and receptive field, which realized end-to-end defect segmentation in casting X-rays.
+Zheng et al. presented a U-shape saliency detection network for tire defect segmentation.
+
+Typically, the methods mentioned above utilize the backbone network pre-trained in ImageNet for feature extraction.
+Using weights pre-trained on ImageNet has been established as a beneficial method for conducting transfer learning across various image recognition applications.
+Numerous studies have shown that a pre-trained convolutional neural network (CNN) not only accelerates the convergence of the model but also enhances its accuracy.
+When training data is scarce, the absence of pre-trained weights may result in the model failing to converge.
+
+The advantages of pre-training stem from the CNN’s ability to derive generalized feature representations through a broad array of natural images.
+
+As shown in Fig. 1 and Table 1, the discrepancy between industrial radiographs and natural images is significantly larger than that of medical radiographs.
+
+The details can be summarized as follows.
+
+Color depth: Due to the difference in imaging methods, natural images have color, while radiographs are single-channel gray images.
+It leads to the failure of the color features extracted by the pre-trained model from ImageNet.
+
+Perspective distortion: Perspective distortion is significant in natural images.
+However, the perspective distortion in radiography is typically minimal compared to natural images.
+The objects being imaged are generally positioned at similar distances from the X-ray source, resulting in nearly parallel rays reaching the detector.
+
+Semantic information: Each natural image appears different and has rich semantic information.
+By contrast, the similarity of radiographs is very high due to the high similarity of human tissue and mechanical components.
+
+Discriminant information: Natural image recognition is usually accomplished by identifying clear and global subjects.
+However, pathologies in medical radiographs and defects in industrial radiographs are recognized by detecting local abnormalities and texture variations.
+
+The number of images: Natural images are easy to obtain and label.
+However, relying heavily on expert experience, datasets in medical and industrial fields have fewer annotated images than natural image datasets.
+The dataset size ranges from dozens of images to a couple hundred thousand.
+
+For example, ImageNet contains approximately 1.2 million training images.
+CheXpert includes 220 thousand chest radiographs.
+GDXray consists of 19 thousand radiographs.
+
+The number of classes: The category of pathology and defect is limited, usually no more than 100.
+However, there are 1000 object classes in ImageNet.
+
+Based on the above analysis, there is a significant gap between the domain of natural images and industrial radiographs.
+This prompts a question: is there a better way than using the pre-trained model from natural images?
+
+Nevertheless, previous research mainly focuses on improving the structure of CNN, overlooking the possible influence of the pre-trained model.
+Therefore, we attempt to improve industrial defect recognition in RT by obtaining a better pre-trained model.
+
+The core contribution of this paper can be outlined as follows.
+
+We first explore the possibility of realizing a cost-free improvement of industrial defect recognition by using pre-trained weights from medical radiographs.
+
+We apply the pre-trained model originally developed for medical radiograph analysis to four specific tasks across two RT scenarios: defect classification and segmentation in both welds and casting environments.
+Several experiments demonstrate that training from medical radiographs brings more improvement than training from ImageNet or training from scratch.
+
+We will release our pre-trained models, which will facilitate the community to apply this improved pre-trained model to other applications in RT.
+
+% 4.1
+Datasets and preprocessing
+
+RT is the most important means of non-destructive testing for welds and castings.
+We select the GDXray-welds and Zju-castings as our datasets for comparison with weight from natural images.
+
+GDXray-welds dataset originally contains ten welds radiographs and their binary annotations for defects.
+The image size of these radiographs is from 366 × 3512 to 1091 × 4953.
+Because the image size is too large, we crop the original radiographs and annotation images simultaneously and get 316 small patches.
+According to the annotation images, we can easily distinguish whether there are defects in some patches.
+Thus, we construct a defect classification task for distinguishing normal and defective patches.
+Naturally, the defective patches and their annotations can be used for defect segmentation tasks.
+
+Zju-castings dataset collects 3148 castings radiographs and their labels of six automobile parts.
+All image size is 1000 × 1000.
+We still utilize the above method to process this dataset.
+Fig. 3 and Table 2 shows the details of the two datasets.
+
+The above two datasets and four tasks not only cover the typical scenes of RT
+but also validate the performance under a small-sample or relatively enough sample.
