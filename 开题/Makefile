@@ -1,5 +1,5 @@
 TEX := latexmk
-TEXFLAGS := -interaction=nonstopmode -halt-on-error -xelatex
+TEXFLAGS := -interaction=nonstopmode -halt-on-error -xelatex -quiet
 
 # Compile only TeX files in the current directory.
 TEXS := $(wildcard *.tex)
@@ -12,16 +12,33 @@ all: $(PDFS)
 # Usage: make 文献综述.pdf
 %.pdf: %.tex
 	$(TEX) $(TEXFLAGS) "$<"
-	BASE=$$(basename "$<" .tex); \
-	if [ -f "$${BASE}.bcf" ]; then biber "$${BASE}"; fi
-	$(TEX) $(TEXFLAGS) "$<"
-	$(TEX) $(TEXFLAGS) "$<"
 
 clean:
-	rm -f *.aux *.bbl *.bcf *.blg *.fdb_latexmk *.fls *.idx *.ilg *.ind *.lof *.log *.lot *.out *.run.xml *.synctex.gz *.toc *.xdv *.nav *.snm
+	@find . -type f \
+		-name "*.aux" -o \
+		-name "*.bbl" -o \
+		-name "*.bcf" -o \
+		-name "*.blg" -o \
+		-name "*.fdb_latexmk" -o \
+		-name "*.fls" -o \
+		-name "*.idx" -o \
+		-name "*.ilg" -o \
+		-name "*.ind" -o \
+		-name "*.lof" -o \
+		-name "*.log" -o \
+		-name "*.lot" -o \
+		-name "*.out" -o \
+		-name "*.run.xml" -o \
+		-name "*.synctex.gz" -o \
+		-name "*.toc" -o \
+		-name "*.xdv" -o \
+		-name "*.nav" -o \
+		-name "*.snm" | xargs rm -fv \
+	| wc -l | awk '{print $$1 " intermediate files removed."}'
 
 distclean: clean
-	rm -f $(PDFS)
+	@find . -type f -name "*.pdf" | xargs rm -fv \
+		| wc -l | awk '{print $$1 " PDF files removed."}'
 
 rebuild: distclean all
 
