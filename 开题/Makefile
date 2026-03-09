@@ -15,7 +15,7 @@ all: $(PDFS)
 
 clean:
 	@find . -type d \( -name "templates" -o -name "assets" -o -name ".git" -o -name "【模板】文献翻译-文献综述-开题报告" \) -prune \
-	-o -type f -regex '.*\.\(aux\|log\|fls\|fdb_latexmk\|xdv\|toc\|nav\|snm\|out\|bbl\|blg\)' \
+	-o -type f -regex '.*\.\(aux\|log\|fls\|fdb_latexmk\|xdv\|toc\|nav\|snm\|out\|bbl\|blg\|bcf\|run\.xml\|synctex\.gz\)' \
 	-exec rm -fv {} + \
 	| wc -l | awk '{print $$1 " intermediate files removed."}'
 
