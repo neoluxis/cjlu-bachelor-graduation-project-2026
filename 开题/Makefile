@@ -20,7 +20,7 @@ clean:
 	| wc -l | awk '{print $$1 " intermediate files removed."}'
 
 distclean: clean
-	@find . -type d \( -name "templates" -o -name "assets" -o -name ".git" -o -name "【模板】文献翻译-文献综述-开题报告" \) -prune \
+	@find . -type d \( -name "templates" -o -name "assets" -o -name ".git" -o -name "【模板】文献翻译-文献综述-开题报告" -o -name "literature_translations" \) -prune \
 	-o -type f -name "*.pdf" -exec rm -fv {} + \
 	| wc -l | awk '{print $$1 " PDF files removed."}'
 
