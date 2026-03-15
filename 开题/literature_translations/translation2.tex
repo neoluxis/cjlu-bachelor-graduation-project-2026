@@ -1,205 +1,346 @@
 % Advanced Faster-RCNN Model for Automated Recognition and Detection of Weld Defects on Limited X-Ray Image Dataset
 \translationpage{译文}{2}
 
-计算机辅助焊接缺陷识别通过解决手动检查速度慢且容易出错的缺点，正在改变无损检测领域。
-该技术为检测管道状况变化和结构损坏提供了可靠的解决方案。
-虽然传统的神经网络在精确的故障定位方面存在不足，但基于深度学习的目标检测技术可以填补这一空白。
-在不依赖预先存在的基准的情况下解决实际工业问题，特别是目视检查 X 射线焊接数据库，是该领域的一项重大挑战。
-此外，我们的焊接数据质量较差，每张图像中都充满了小而粘的孔隙，这带来了与选择适当的深度神经网络目标检测器相关的几个问题。
-这是另一个需要解决的挑战。为了应对这些挑战，我们引入了一种基于著名的 Faster RCNN 架构的新颖方法，以开发专门用于焊接缺陷检测和识别的模型。
-这项研究深入探讨了这种新采用的方法的内部运作方式。
-在我们的研究中，我们对该模型进行了彻底的参数化、训练、测试和验证。
-通过与 YOLO 和 DCNN 模型的比较分析，我们的方法脱颖而出，凸显了我们基于 Faster RCNN 的系统的优越性。
-通过评估其稳健性和效率，我们的研究表明，对于这种特定的小而粘性孔隙缺陷类型，Faster RCNN 模型在焊接缺陷检测和定位方面优于同类模型。
-这证明了在该领域有效设定了新标准。
 
-% 1. Intro
-在输水管道建设过程中，需要通过内部和外部焊接操作将金属部件连接在一起。
-这些关键焊接任务需要由人工专家进行检查，他们能够识别各种类型的焊接缺陷，包括裂纹和气孔，
-这些缺陷可能来源于焊接接头的不完善。
-这些问题可能导致管道使用寿命缩短。
-因此，为保证管道的最佳质量，必须进行质量控制。
-管道检测必须在不破坏构件的情况下进行。
-目前，在线无损检测（NDT）通常结合机器视觉技术进行。
-工业领域使用检测技术验证材料、结构或系统是否满足规定的要求，同时确保原始部件的完整性不受破坏。
-在该领域中，焊缝通常通过射线检测等无损检测技术进行检查，射线通过样品以识别缺陷。
-X 射线成像特别适合检测薄材料，能够提供高分辨率和清晰度，从而精确检测缺陷。
-另一方面，伽马射线成像用于检测较厚的部件。
-为了便于分析和处理，检测结果可以通过胶片射线成像、计算机射线成像，或计算机断层扫描进行数字化。
-然而，数字化图像通常质量较低且对比度较差，这使焊缝缺陷检测变得十分繁琐。
-不幸的是，这些特性会影响目标的解释、分类和识别。
-因此，引入计算机视觉的人工智能技术来辅助专家评估检测结果。
-在这种背景下，这些方法成为焊缝缺陷检测和定位的重要研究手段，能够替代人工专家完成相关工作，
-并提供一种客观且成本较低的替代方案。
-为了全面理解图像内容，我们的目标不仅仅是进行图像分类，还需要精确估计每个图像中目标的类别和位置。
-这种方法通常被称为目标检测，它涵盖了多种子任务，如人脸检测、行人检测和脊柱检测。
-目标检测是计算机视觉领域的重要方向，为理解图像和视频提供有价值的洞察。
-它的重要性在图像分类、人类行为分析、人脸识别和自动驾驶等应用中尤为明显。
-神经网络及相关学习系统的发展极大影响了网络算法的发展，并彻底改变了目标识别技术。
-然而，多样的视角、遮挡、姿态和光照条件使得精确目标识别与定位成为复杂任务。
-因此，这一领域近年来受到研究人员和实践者的广泛关注。
-目标检测包含两个主要任务：
-确定图像中目标的空间位置（目标定位），
-以及为每个目标分配正确的类别标签（目标分类）。
-随着深度神经网络（DNN）的出现，该领域取得了重大进展，
-尤其是基于区域的卷积神经网络（R-CNN）的提出。
-这些创新大幅提高了目标检测与识别的性能，实现了更精确和高效的目标定位与分类。
-相比浅层网络，深层架构能够学习更复杂的特征。
-强大的表达能力和稳健的学习能力使算法能够自动学习有用的目标特征，无需手动设计特征。
+基于改进Faster-RCNN模型的小样本X射线图像焊缝缺陷自动识别与检测
 
-许多改进模型基于 R-CNN 框架被提出，这些模型同时优化分类任务和边界框回归。
-Fast R-CNN 利用子网格生成区域候选，从而实现精确的目标定位和分类。
-另一方面，YOLO（You Only Look Once）通过固定网格回归方法进行目标识别，
-实现实时目标检测，
-适用于 Google Photos 和 Pinterest Visual Search 等消费产品。
-这些方法在移动设备上也能实现快速高效的性能。
-此外，预训练模型的出现提高了识别性能，使实现准确目标识别和实时渲染更加容易。
-然而，专业人员在选择最适合其应用的架构时可能仍面临挑战。
-标准指标如平均精度均值（mAP）提供的洞察有限，
-而计算实现、执行时间和内存消耗等因素同样在判断视觉系统适用性时起关键作用。
+Chiraz Ajmi¹ · Juan Zapata¹ · Sabra Elferchichi² · Kaouther Laabidi³\\
+收稿日期：2023年10月4日 / 录用日期：2023年11月21日 /
+在线发表日期：2023年12月16日\\
+© 2023 作者，独家授权施普林格自然旗下施普林格科学+商业媒体有限责任公司
 
-事实上，焊接领域精度和准确性问题一方面由于焊接缺陷类别繁多，
-另一方面由于提取特征不足以获得高质量识别，从而无法有效检测缺陷。
-传统机器学习算法已被广泛研究和应用，遵循传统 ML 应用方案并使用特征挖掘技术。
-尽管某些 ML 算法如人工神经网络（ANN）耗时且精度较低，但其实现简单仍受到认可。
-然而，随着深度学习的兴起，利用大规模数据集和自动特征提取显著提升了缺陷检测能力。
-在同一背景下，已有研究致力于优化此类控制方法，目标是创建自动化 X 射线图像检测与分析系统，
-但深度学习技术在焊缝缺陷检测中的应用仍面临挑战，相关研究较少且缺乏成熟方法。
+\textbf{摘要}\\
+计算机辅助焊缝缺陷识别技术解决了人工检测速度慢、易出错的弊端，正推动无损检测领域的变革，为管道状态变化和结构损伤检测提供了可靠方案。传统神经网络在精准缺陷定位方面存在不足，而基于深度学习的目标检测技术恰好弥补了这一缺陷。在该领域中，针对实际工业问题------尤其是对X射线焊接图像库进行视觉检测时，缺乏现成的基准数据集是一项重大挑战。此外，本研究使用的焊接图像质量较差，每张图像中均存在大量细小粘连的气孔缺陷，这为合适深度神经网络目标检测器的选择带来了诸多问题，也是亟待解决的另一项挑战。为应对上述挑战，本研究以经典的Faster
+RCNN架构为基础，提出一种新方法，开发了一款专门用于焊缝缺陷检测与识别的模型，并深入探究了该新方法的内部工作机制。研究中，我们对该模型进行了全面的参数化设计、训练、测试与验证。通过与YOLO和深度卷积神经网络（DCNN）模型的对比分析，本研究提出的基于Faster
+RCNN的系统展现出显著优势。对模型鲁棒性和效率的评估结果表明，针对此类特定的细小粘连气孔缺陷，Faster
+RCNN模型在焊缝缺陷检测与定位方面的性能优于其他对比模型，为该领域建立了新的技术标准。
 
-文献中已有关于基于预训练 CNN 模型的焊缝缺陷检测研究。
-然而，为特定数据集采用专用深度学习架构仍是一个重要挑战，可从不同角度解决。
-为克服前人工作的局限并应对数据集复杂性，我们利用迁移学习，应用预训练网络。
+\textbf{关键词}：焊缝缺陷检测；X射线图像；目标检测；Faster RCNN
 
-我们的目标是定制适合特定应用场景的网络模型，并在新数据集上实现多种缺陷的高精度检测。
-通常，目标检测过程适用于 RGB 图像且目标相对分离，此时检测算法较为简单。
-相反，X 射线数据集中的小尺寸粘连缺陷使检测过程更复杂。
-近年来，基于深度学习的感知应用取得突破，但从零构建模型仍需要大量数据。
-例如，Faster R-CNN 约需 150,000 张自然图像以达到最佳性能，而训练数据不足会影响新技术的使用。
+1 引言
 
-X 射线焊接图像数量不足是需要调整的挑战，尤其是图像质量低且类型多样时。
-此外，每张图像中存在大量小气孔缺陷，也带来选择合适深度神经网络检测器及其性能的难题。
-因此，基于深度学习的焊缝缺陷检测仍属于新兴技术。
-本文证明，即使使用非常小的训练数据集，也能通过利用在自然图像上预训练的深度网络实现高精度和高效率。
-我们使用 453 张 X 射线焊接图像对 Faster R-CNN 网络进行微调，并与传统和新型检测模型进行比较。
-本文旨在探讨执行时间和测试结果，以及测试过程中的性能表现。
-在本研究中，进行了综合分析，以概述 AI 模型及其在多种应用领域包括焊接检测中的性能特点。
-本文内容安排如下：
-第二部分介绍深度学习背景及 CNN 基本结构。
-第三部分详细介绍目标检测的架构和结构。
-第四至第六部分展示 Faster R-CNN 的实验结果并与其他模型进行比较。
-最后，第七部分给出结论并概述未来研究方向。
+在水管铺设过程中，需通过内外焊接操作将金属部件连接固定。这些关键的焊接工序需由专业人员进行检测，以识别焊接接头缺陷引发的裂纹、气孔等各类焊接缺陷------此类缺陷会缩短管道的使用寿命。因此，为保证管道的最优质量，质量控制工作必不可少，且管道检测需在不损坏部件的前提下进行。目前，机器视觉技术已被应用于在线无损检测（NDT）中。工业领域通过检测技术验证材料、结构或系统是否符合规定要求，同时保证原部件的完整性。在无损检测领域，射线检测是焊缝检测的常用技术，该技术通过让射线穿过试件以识别内部缺陷。其中，X射线成像技术对薄壁材料检测尤为有效，能提供高细节的可视性和分辨率，实现缺陷的精准检测；而伽马射线成像技术则适用于厚壁部件的检测。为便于分析和处理，可通过胶片射线照相、计算机射线照相或计算机断层扫描技术将检测结果数字化。但数字化后的图像往往存在质量低、对比度差的问题，使得焊缝缺陷检测工作耗时费力，同时也会干扰目标的解译、分类与识别。为此，面向计算机视觉应用的人工智能技术应运而生，辅助专业人员评估检测结果。在这一背景下，这些技术成为替代专业人员进行焊缝缺陷检测与定位的重要研究方向，提供了客观、经济的检测方案。
+
+为实现对图像的全面理解，研究目标不仅限于图像分类，还需精准识别每张图像中目标的类别并确定其精确位置，该方法被称为\textbf{目标检测}{[}1{]}，涵盖人脸检测{[}2{]}、行人检测{[}3{]}、脊柱检测{[}4{]}等多个子任务。目标检测是计算机视觉领域的研究重点，为图像和视频理解提供了重要依据，在图像分类{[}5{]}、人体行为分析{[}6{]}、人脸识别{[}7{]}、自动驾驶{[}8{]}等诸多应用中具有重要意义。神经网络及相关学习系统的发展极大推动了网络算法的进步，彻底革新了目标识别技术。然而，视角变化、目标遮挡、姿态差异和光照条件等因素带来的挑战，使得实现兼具精准分类与定位的目标识别成为一项复杂任务，因此该领域近年来受到研究人员和从业者的广泛关注{[}9-11{]}。
+
+目标检测主要包含两项核心任务：确定目标在图像中的空间位置（目标定位）和为每个目标分配对应的类别标签（目标分类）。深度神经网络（DNN）{[}12{]}在该领域的应用带来了重大突破，尤其是基于区域的卷积神经网络（R-CNN）{[}9{]}的提出，大幅提升了目标检测与识别的性能，实现了更精准、高效的目标定位与分类。与浅层网络相比，深层网络架构能够学习更复杂的特征；算法的强表达能力和鲁棒学习能力，使其无需人工设计特征即可学习目标的有效表征{[}13{]}。
+
+在R-CNN的基础上，研究人员提出了诸多改进模型，这些模型可联合优化分类任务和边界框回归任务{[}9{]}。Fast
+RCNN采用独立的子网络生成区域建议框，实现了精准的目标定位与分类{[}10{]}；而YOLO（You
+Only Look
+Once）则通过固定网格回归方法进行目标识别，支持实时目标检测，适用于谷歌相册、Pinterest视觉搜索等民用产品{[}11{]}。这些方法即使在移动设备上也能实现快速、高效的检测，且不同识别性能的预训练模型的出现，也让精准的目标识别和实时渲染变得更加容易。但对于专业人员而言，为特定应用选择最优的网络架构仍存在困难------平均精度均值（mAP）等标准评价指标的参考价值有限，计算实现、执行时间和内存消耗等其他因素，在视觉系统选型中也起到关键作用。
+
+事实上，焊接领域的检测精度问题，一方面源于焊缝缺陷的类别多样性{[}14{]}，另一方面则是因为提取的特征不足以实现高质量的识别，进而无法有效检测缺陷。经典机器学习（ML）算法遵循传统的机器学习应用流程，结合特征挖掘技术，已得到广泛研究和应用。尽管人工神经网络（ANN）等部分机器学习算法存在耗时久、精度低的问题，但其易实现的特点仍受到认可。而深度学习的出现，通过大数据集和自动特征提取大幅提升了缺陷检测能力。在此背景下，已有多项研究致力于优化该检测方法，旨在构建自动化的X射线图像检测与分析系统，但深度学习技术在焊缝缺陷检测中的应用仍面临挑战，相关研究和成熟方法较少。
+
+已有研究基于预训练卷积神经网络模型，开展了深度学习在焊缝缺陷检测中的应用探索{[}15{]}。然而，针对特定数据设计专用的深度学习架构用于焊缝缺陷检测，仍是一项重大挑战，可从多个角度展开研究。为克服现有研究的局限性，应对数据集的复杂性，本研究利用迁移学习技术，采用预训练网络{[}16{]}进行模型构建。
+
+研究目标是定制适用于特定场景的网络模型，实现对新数据集多种缺陷的高精度检测。目标检测技术通常适用于RGB图像和目标分离的场景，检测算法的性能也更易保证；相反，X射线图像数据集存在大量细小粘连的缺陷，使得检测过程更为复杂。
+
+近年来，深度学习在感知类应用中取得了突破性进展，但从头训练模型往往需要大量的数据集。例如，Faster
+RCNN{[}10{]}需要约15万张自然图像才能达到最佳性能，而训练数据的缺乏为该技术的应用带来了难题。
+
+X射线焊接图像的数量不足是亟待解决的挑战，尤其是当图像质量低、缺陷类型多样时，这一问题更为突出。此外，每张X射线图像中均存在大量细小粘连的气孔缺陷，这为合适深度神经网络目标检测器的选择及其性能优化带来了诸多问题。正因如此，基于深度学习算法的焊缝缺陷检测技术仍处于探索阶段。本研究证明，通过使用预训练于自然图像的深度学习网络，并基于极小的训练数据集进行调优，可实现焊缝缺陷的高精度、高效率检测。研究中，我们基于453张X射线焊接图像对Faster
+RCNN网络进行调优，并与传统和新型检测模型进行对比，分析模型的执行时间、测试结果及测试性能。本研究全面探究了人工智能模型的特性及其在焊接领域等多个应用场景中的表现，文章结构安排如下：第2节简要介绍深度学习的研究背景和卷积神经网络的基本结构；第3节详细阐述目标检测的架构与结构；第4-6节分别展示Faster
+RCNN的应用结果，并与其他模型进行对比；最后，第7节给出研究结论，并展望未来的研究方向。
+
+2 研究现状综述
+
+目标检测是计算机视觉领域的重要研究方向。传统目标检测方法主要依赖方向梯度直方图（HOG）、尺度不变特征变换（SIFT）等人工设计的特征，结合多个分类器实现检测，但与近年来深度学习取得的突破相比，传统方法的性能存在明显差距{[}12,17,18{]}。
+
+近年来，神经网络成为目标检测的主流方法，推动了该领域的革命性发展。本节重点介绍该领域的重要研究成果：Girshick等人提出的R-CNN是基于卷积网络的目标检测开创性研究之一{[}19{]}。
+
+在R-CNN的基础上，Fast
+R-CNN{[}9{]}提出了改进方法，解决了计算效率低的问题。R-CNN和Fast
+R-CNN均依赖外部建议框生成器生成边界框建议，而该领域的最新研究表明，神经网络也可用于生成边界框建议{[}10,20-23{]}。这一进步省去了独立的建议框生成步骤，简化了目标检测流程，进一步提升了系统的整体效率和精度。
+
+多项研究致力于提升检测速度{[}1,19,24{]}，其中Ren等人提出的Faster
+R-CNN是重要突破------该模型将卷积神经网络作为区域建议网络（RPN）{[}10{]}，在保证高精度的同时大幅缩短了目标检测时间{[}18{]}。但从头训练Faster
+R-CNN等网络需要大量的标注训练数据，而X射线成像应用中，收集大规模的精准标注数据集难度极大，这为该技术的应用带来了挑战。
+
+近期研究表明，深度网络是预测目标边界框的有效工具。有研究{[}23{]}应用OverFeat模型，通过全连接层预测单个目标的边界框坐标，随后将该全连接层转换为卷积层，实现多类别目标的检测。在此基础上，MultiBox方法{[}21,22{]}提出了一种新策略：从网络的最后一个全连接层生成区域建议框，同时预测独立的类别边界框，扩展了OverFeat的"单框"模式，且这些独立于类别的边界框可应用于R-CNN框架{[}19{]}。值得注意的是，MultiBox建议网络可应用于单张图像裁剪和大图像的多区域裁剪（如224×224尺寸），这与本研究采用的全卷积方案不同；此外，MultiBox的建议网络和检测网络不共享功能，为目标检测技术提供了独特的思路。
+
+尽管基于人工神经网络的缺陷检测在多个领域取得了成功，但其在生产线中的应用仍较为有限{[}25{]}。传统方法通常采用数学形态学技术分割图像并提取缺陷特征，例如：Kasban等人{[}26{]}提出了一种特征提取方法，作为缺陷识别的基础；Mery等人{[}27{]}基于纹理特征实现焊缝缺陷检测；Valavanis等人{[}28{]}提出了结合纹理和几何特征的缺陷检测与分类方法；Gang等人{[}29{]}提出了一种焊缝缺陷自动分类方法，融合了图像处理、模式识别和特征提取算法，通过BSM技术精准提取图像中的缺陷区域，并分别采用模糊K近邻算法和多层感知器（MLP）完成分类任务。
+
+其他研究则在特征提取后，利用人工神经网络进行分类{[}30,31{]}；Abouelatta等人{[}32{]}提出了一种基于图像直方图和神经网络的分类器构建方法；有研究将主成分分析（PCA）与人工神经网络结合，实现特征降维{[}33{]}；还有研究基于纹理和形态特征，采用支持向量机（SVM）分类器提升计算效率{[}34{]}；Mu等人{[}35{]}将主成分分析和支持向量机结合，提升了系统的检测精度；Baniukiewicz提出了一种融合人工神经网络和模糊逻辑的分类器{[}36{]}；Chen等人{[}37{]}基于稀疏重构技术开发了焊缝射线图像缺陷检测模型，通过分析条带的区域特征定位焊缝区域，并区分无裂纹和裂纹缺陷，同时基于灰度列的波形分析实现缺陷的粗分类。目前的方法仍依赖人工特征设计，相关研究正致力于克服这一难题。
+
+总体而言，深度学习目标检测技术在射线检测领域的应用已获得广泛关注。深度学习模型融合了人工神经网络专业人员的知识和经验，利用人工神经网络的结构、特征选择和学习相关的特征提取能力，实现了有效的缺陷识别。迁移学习方法虽减少了对训练数据的需求，但仍需要更多的缺陷数据来优化训练。近年来，关于卷积神经网络基本原理和相关测试的研究，为迁移学习技术在焊接领域的应用奠定了基础。在笔者的最新研究{[}38{]}中，提出了包含五个卷积层的Alex
+Net分类网络，并通过微调实现焊接图像的分类，该方法在焊接分类任务中表现出较高的精度，证明了深度学习在焊接领域的应用潜力。
+
+在笔者之前的研究中，提出了一种训练方法：首先基于特定数据集训练初始模型，再利用X射线数据集对同一模型进行二次训练，以适应X射线数据的特点------X射线数据往往存在类别分布差异，甚至包含新的类别。从头训练模型虽能获得更优的结果，但耗时更长、资源消耗更大；而利用相关任务的预训练模型，尤其是通过微调，能实现高效的模型优化。通过选择性冻结预训练层，仅训练新增层，可大幅提升X射线数据分析的性能。该方法在利用先验知识和适应X射线数据集独特特征之间实现了平衡，最终提升了模型性能。
+
+调整学习率时，需考虑其对训练过程的影响：学习率过高会导致梯度下降优化的步长过大，使神经网络收敛到局部最优解而非全局最优解，进而降低模型性能；而新数据集的样本不足或超参数设置不当，也会导致模型结果不理想。机器学习的性能高度依赖于数据集和网络参数，为此，可通过平移、旋转、翻转等数据增强技术扩充数据集，同时基于增强后的数据集对模型进行微调，通常能获得更优的结果。关于数据的详细描述见4.2.1节。
+
+卷积神经网络（CNN）在目标检测领域展现出巨大潜力，尤其在X射线和超声图像分析中表现突出。其能够分析大规模X射线图像、识别缺陷并确定缺陷类别，是该领域的一项重要突破。近期，有研究将人工智能模型应用于复杂焊缝区域显微图像的语义分割，实现焊缝属性的自动检测和量化{[}39{]}；还有研究提出了基于深度学习的焊缝缺陷识别新方法{[}40{]}，通过卷积神经网络提取焊缝表面缺陷图像的高层特征，简化了特征提取过程，并利用泛化能力和鲁棒性较强的随机森林分类算法完成缺陷分类。多项研究证明了卷积神经网络在焊缝缺陷检测中的有效性：2018年，有研究{[}41{]}提出了基于Faster
+RCNN网络的钢材表面焊缝缺陷检测方法，在五类缺陷的检测中均取得了较高的精度。
+
+另一项2018年的研究{[}42{]}对Faster-RCNN和SSD两种目标检测算法的缺陷检测与分类性能进行了全面对比，结果表明YOLO网络在小目标检测中存在局限性。
+
+由此可见，卷积神经网络在焊接领域的应用仍面临挑战。尽管其具有良好的应用前景，但在该领域仍存在诸多限制，例如焊接图像的复杂性导致焊缝缺陷检测难度大、需要专用的训练数据集以提升检测精度等。Wen等人{[}43{]}利用Faster
+R-CNN在WDXI数据集中实现了焊接缺陷的识别，该方法结合了多分类和精准定位技术，能够在数据集中准确识别并定位焊缝缺陷；Oh等人{[}44{]}开展了另一项研究，通过人工智能模型提取特征并分类异常，实现射线检测图像的解译。但这些方法仍需要大规模的训练数据集，在实际应用中难以实现；此外，神经网络的训练时间作为实际应用中的关键因素，也未得到充分考虑。
+
+本研究将Faster
+RCNN这一深度学习目标检测模型应用于焊缝气孔缺陷的检测与定位------气孔是最常见的焊缝缺陷之一。研究中，我们将模型结果与不同预训练网络的组合结果对比，并与YOLOv2目标检测模型进行对比，最终通过多种指标对模型进行验证。
+
+3 研究方法
+
+3.1 Faster RCNN架构
+
+RCNN是基于卷积神经网络（CNN）的目标检测算法，通过预设尺寸的滤波器在图像的所有区域搜索目标。如图1所示，Faster
+RCNN在传统的选择性搜索方法中引入了\textbf{区域建议网络（RPN）}，实现了区域建议框的生成，是一种创新的目标检测方法。该神经网络模型可通过配置卷积层和全连接层实现特征学习，同时利用图形处理器（GPU）可实现快速计算。
+
+如图1所示，区域建议网络通过滑动窗口和256/512维特征提取器生成中间层特征，随后在两层网络中进行卷积操作：分类层和回归层。分类层采用1×1滤波器生成输出，最终生成包含多种尺寸和比例的K个锚框；对于每个滑动窗口，分配两个分数用于表示目标的存在概率。回归层同样采用1×1滤波器生成K个锚框，并为每个锚框分配四个坐标值，代表边界框的位置。通过感兴趣区域（RoI）池化层将两层网络的输出输入至全连接层，完成模型的学习过程。
+
+Faster R-CNN中感兴趣区域池化层和区域建议网络的融合，有效解决了RCNN和Fast
+R-CNN架构存在的计算和结构问题，大幅提升了检测精度和计算速度。Faster
+RCNN模型通过区域建议网络模块的端到端反向传播，减少了检测误差；由于区域建议网络基于卷积结构构建，可与特征提取器结合，进一步提升效率。通过采用多种卷积神经网络结构，该模型在ImageNet数据集上取得了优异的性能。
+
+3.2 区域建议网络（RPN）
+
+区域建议网络（RPN）以图像为输入，生成一系列目标建议框，并为每个建议框分配\textbf{目标性分数}¹。该模型基于\textbf{全卷积网络}构建，能够在图像的每个位置同时预测目标边界和分数。本节将详细介绍本研究采用的全卷积网络{[}45{]}。
+
+如图1所示，区域建议网络的工作原理为：在卷积特征图上进行滑动窗口操作，将每个n×n的空间窗口全连接，为每个滑动窗口生成一个低维向量（VGG16为512维，ZF网络为256维），并将该向量输入至两个全连接（FC）层：边界框回归层（reg）和边界框分类层（cls）。模型实现过程中，采用n×n的卷积层和两个1×1的卷积层，并在n×n卷积层的输出中引入ReLU激活函数，增强非线性表达能力；基于锚框对建议框进行回归评估（详见3.2.1节）。
+
+本研究采用3种尺度和3种比例的锚框，损失函数如公式（1）所示：\\
+\(\begin{aligned} L\left(p_{i}, t_{i}\right)= & \frac{1}{N_{c l s}} \sum_{i} L_{c l s}\left(\left(p_{i}, p_{i}^{*}\right)\right) \\ & +\lambda \frac{1}{N_{reg }} \sum_{i}\left(p_{i}^{*} L_{r e g}\left(t_{i}, t_{i}^{*}\right)\right) \end{aligned}\)\\
+其中，\(p_{i}\)为第i个锚框包含目标的预测概率，若锚框为正样本则\(p_{i}^{*}=1\)，否则为0；\(t_{i}\)为预测边界框的四个坐标值，\(t_{i}^{*}\)为正样本锚框对应的真实边界框坐标；\(L_{cls}\)为对数二分类损失，\(L_{reg}\)为平滑L1损失，如公式（2）所示{[}9{]}：\\
+\(Smooth L 1(x)=\begin{cases}0.5 x^{2}, & |x|<1 \\ |x|-0.5, & else\end{cases}\)\\
+项\(p_{i}^{*} L_{reg }\)表示仅对正样本锚框（\(p_{i}^{*}=1\)）计算回归损失，负样本锚框（\(p_{i}^{*}=0\)）则不计算；\(p_{i}\)和\(t_{i}\)分别为分类层和回归层的输出。分类损失和回归损失分别通过\(N_{cls}\)和\(N_{reg}\)正则化，并通过平衡参数\(λ\)加权。在本研究的实现过程中，公式（1）中的分类损失项通过小批量样本尺寸标准化，回归损失项通过锚框数量标准化；默认设置\(λ=10\)，使分类损失和回归损失的权重大致相等。通过反向传播和随机梯度下降（SGD）对各模块进行训练，可构建端到端的Faster
+RCNN模型。
+
+\emph{注1：目标性分数用于评估锚框属于目标类别而非背景的概率。}
+
+3.2.1 锚框概念
+
+区域建议网络可在每个滑动窗口位置同时预测多个区域建议框，k为每个位置的建议框数量。分类层生成2k个分数，用于预测每个建议框是否包含目标；回归层生成4k个输出，代表k个边界框的坐标。这k个建议框基于\textbf{锚框}构建------锚框是具有特定尺度和比例的参考框（见图1右侧）。本研究采用3种尺度和3种比例的锚框，因此每个滑动位置共生成\(K=9\)个锚框。若卷积特征图的尺寸为\(W×H\)，则图像中共有\(WHk\)个锚框，即每个区域建议框会生成k个不同尺度或比例的候选区域。
+
+分类层为每个区域建议框分配一个二维向量：若第一个元素为1、第二个为0，则该区域为背景；反之则包含目标。区域建议网络中每个锚框的目标性分数基于\textbf{交并比（IoU）}计算，该指标为锚框与真实边界框的交集面积和并集面积的比值，取值范围为0.0\textasciitilde1.0，0.0表示无交集，1.0表示完全重叠。锚框的目标性分数由以下四个条件确定：
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	若锚框与任一真实边界框的交并比大于0.7，则标记为正样本；
+	\item
+	若不存在交并比大于0.7的锚框，则将与真实边界框交并比最高的锚框标记为正样本；
+	\item
+	若锚框与所有真实边界框的交并比均小于0.3，则标记为负样本（背景）；
+	\item
+	既非正样本也非负样本的锚框，不参与模型的训练。
+\end{enumerate}
+
+\textbf{补充说明}：若不存在交并比≥0.7的区域，锚框即使不满足第一个条件（IoU\textgreater0.7），若满足0.5\textless IoU≤0.7，也可被标记为正样本，即：\\
+\(\begin{aligned} & Objectness _{score }(I o U) \\ & =\begin{cases} Positive \to I o U>0.7 \\ Positive \to 0.5<I o U \leq 0.7 \\ Negative \to I o U<0.3 \\ Not Negative/Positive \to 0.3 \leq I o U \leq 0.5 \end{cases} \end{aligned}\)
+
+3.3 Fast R-CNN架构
+
+Fast
+R-CNN的输入为图像和一系列目标建议框，其处理过程与区域建议网络类似，区别在于：Fast
+R-CNN通过卷积网络（本研究采用ResNet）处理整张图像，生成512维的特征图，并将每个目标建议框映射至特征图中的感兴趣区域（ROI）。特征提取完成后，引入\textbf{感兴趣区域池化层}，将感兴趣区域的特征标准化为14×14的固定空间尺寸；随后将得到的特征向量输入至全连接层，生成两个独立的输出层：边界框回归层和基于softmax的概率估计层。
+
+softmax输出层为包括背景在内的各类别提供概率估计，边界框回归层则以边界框回归结果的形式，给出各目标类别的坐标。为指导分类和边界框回归的学习过程，定义多任务损失函数L，如公式（1）所示。
+
+3.4 区域建议网络的训练策略
+
+区域建议网络是全卷积网络，可通过反向传播和随机梯度下降实现端到端训练{[}46{]}。本研究采用与文献{[}9{]}相似的通用训练方法，仅对预训练模型的选择和参数进行了微调。每张图像包含大量正、负锚框样本，构成每个小批量训练集的基础；尽管对所有锚框优化损失函数在理论上可行，但会因负样本占比过高导致模型偏置。为此，本研究从每张图像中随机选择256个锚框构建小批量训练集，且正、负样本的比例保持1:1；若图像中的正样本不足128个，则用负样本补充。
+
+模型初始化时，所有新层的权重采用均值为0、标准差为0.01的高斯分布随机初始化；共享卷积层则采用预训练于ImageNet分类任务的深度残差学习架构{[}47{]}初始化。针对数据集样本量有限的问题，本研究将小批量训练的学习率设置为0.001，同时设置权重衰减系数为0.0005、动量为0.9，详细参数见5.1节。模型基于MATLAB
+R2019b实现，硬件采用GeForce RTX
+2080显卡，整体架构由特征提取网络和两个子网络构成，详见4节。
+
+3.5 区域建议网络与Fast R-CNN的特征共享
+
+前文已详细介绍区域建议网络的结构及其训练方法，其生成的区域建议框将被Fast
+R-CNN模型使用。本节主要介绍两个模型之间的层共享方法：单独训练每个模型会导致卷积层的参数发生不同变化，因此需将两个模型融合，实现卷积层的共享，从而增加模型学习的特征数量，提升检测性能。共享层在两个网络中均被调用，且仅存在一次，该方式被称为\textbf{层共享}或\textbf{特征共享}，而锚框是实现Faster
+R-CNN各模块特征/层共享的关键。总体而言，特征共享的网络构建方法主要有三种：近似联合训练、非近似联合训练和交替训练{[}10{]}。
+
+本研究采用\textbf{交替训练}方法，流程为：首先训练区域建议网络，利用其生成的建议框训练Fast
+R-CNN；再基于Fast
+R-CNN的网络参数初始化区域建议网络，重复上述过程。具体步骤为：
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	按照3.4节的方法训练区域建议网络，以ImageNet预训练模型为初始值，进行端到端微调；
+	\item
+	利用区域建议网络生成的建议框训练Fast
+	R-CNN，该检测网络同样以ImageNet预训练模型初始化，此时两层网络不共享特征；
+	\item
+	以Fast
+	R-CNN的网络参数为基础，定义共享卷积层，仅对区域建议网络的独立层进行微调，实现层共享；
+	\item
+	固定共享卷积层的参数，仅对Fast R-CNN的独立层进行微调。
+\end{enumerate}
+
+上述训练过程可多次迭代，但本研究发现，多次迭代后模型的性能提升并不显著。
+
+4 研究方法细节
+
+4.1 挑战概述
+
+本研究使用的X射线图像由图2所示的系统采集，数据集存在样本量小、图像维度高（640×480和720×576像素）、质量差、光照不均的问题，且每张图像中均存在一个或多个不同尺寸、不同数量的焊缝缺陷{[}48{]}，这使得焊缝缺陷检测成为一项困难且耗时的工作。传统的分类方法采用的特征提取技术在不同的目标识别任务中已被证明有效，而深度学习的出现通过专用的网络结构实现了特征的自动学习和提取，大幅简化了这一过程。限制深度学习技术落地的主要问题为\textbf{数据可用性}和\textbf{计算能力}。
+
+由于收集和维护大规模数据集需要耗费大量的人力物力，相关研究通常基于现成的数据集开展。而本研究面临的核心问题为：X射线焊接图像的公开数据集匮乏，且每张图像中均存在大量细小粘连的缺陷；此外，市场上现有的数据集（如GD
+X-ray{[}49{]}）与本研究的数据集差异较大，进一步增加了检测难度。为此，本研究基于原始样本生成了更多的训练数据（见图2）。
+
+本研究聚焦于一种主要的焊缝缺陷------\textbf{气孔}，所用图像由原始数据裁剪、缩放得到（详见4.2节），并在处理过程中保持图像的原始比例，避免图像质量受损。但数据集样本量不足仍可能导致模型过拟合，为解决这一问题，本研究采用\textbf{数据增强算法}扩充训练和测试样本。模型的整体流程将在后续章节详细介绍，流程图见图3。
+
+4.2 图像采集系统
+
+本研究通过X射线成像系统完成数据采集，并利用平板探测器、数字成像设备等多种系统实现图像数字化。采集系统的核心组件包括：满功率运行的YSmart
+160E 0.4/1.5
+X射线源、不同壁厚和直径的螺旋焊接钢管试件、图像增强器（II）。通过该系统获得的数字图像尺寸为1280×720像素{[}38{]}，本研究利用该数字设备将Spa
+Maghreb钢管²产生的信号转换为数字格式。为实现百分之一毫米级的缺陷检测和测量精度，研究人员对图像分辨率进行了精心选择------这一精度在X射线检测中尤为重要，远高于常规检测的要求。
+
+如笔者之前的研究{[}38{]}所述，成像质量受环境条件影响较大，因此需要通过滤波对图像进行增强。为此，本研究基于MATLAB开发了一套图像处理算法：首先对原始图像进行裁剪和缩放，生成新图像；随后采用维纳滤波、高斯滤波等去噪预处理技术，并通过拉伸实现对比度增强{[}50{]}；最终将图像缩放到250×200像素的固定尺寸，同时保持原始的长宽比{[}38{]}。
+
+4.2.1 数据增强技术
+
+本研究的数据集仅包含453张标注图像，样本量不足以有效训练人工智能模型。若直接使用原始数据集，模型的训练误差和验证误差会存在显著差异，表现出明显的过拟合现象；而扩充样本量可有效提升模型性能。为此，本研究采用\textbf{数据增强技术}扩充数据集规模：在训练过程中对原始数据进行随机修改，提升网络的检测精度；该技术无需额外的标注样本，即可增加训练数据的多样性，同时缩小训练误差和验证误差的差距，解决样本替换不充分的问题。
+
+本研究采用两种图像数据增强技术：
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	\textbf{X轴水平翻转}：将图像及其对应的边界框标签随机水平翻转（见图4）；
+	\item
+	\textbf{尺度增强}：对图像及其边界框标签进行随机缩放，匹配模型的输入尺寸；
+	\item
+	\textbf{颜色增强}：提取单颜色通道。本研究的原始图像为RGB格式的灰度图，每个像素的R、G、B通道值相等，因此可提取任一通道作为单通道灰度图，提升计算速度。
+\end{enumerate}
+
+\textbf{注}：测试集和验证集均采用原始图像，不进行任何增强处理，以保证评估结果的客观性。
+
+4.3 人工智能模型概述
+
+4.3.1 模型架构
+
+构建深度学习网络时，易出现梯度值异常的问题，导致梯度饱和，进而减慢模型的学习速度。ResNet通过在传统神经网络结构中引入\textbf{残差连接}（输入直接连接至输出，无额外参数）解决了这一问题，仅通过计算实现输入与特征的相加，该改进对计算过程产生了显著影响，使网络能够实现更深层次的学习，进而提升模型精度，优化网络性能。ResNet的残差学习模块{[}18{]}见图5，该技术通过让模型学习\(H(x)-x\)的残差特征，使模型更易检测输入的微小变化------理想状态下残差特征应趋近于0。
+
+本研究提出的Faster
+R-CNN模型包含两个核心模块：\textbf{区域建议网络（RPN）}和\textbf{Fast
+	R-CNN}。区域建议网络负责生成高质量的区域建议框，为Fast
+R-CNN的精细目标检测提供基础，本质上是引导网络聚焦于图像中的关键区域。模型架构见图6，其核心为Fast
+R-CNN。
+
+经过多组配置测试，本研究最终确定了表1所示的模型架构，该模型共包含347层。为降低过拟合风险，每个卷积层后均加入批量归一化层和ReLU激活层。
+
+区域建议网络结合锚定机制，采用多种尺寸的锚框，具体为：3种比例（1:1、1:2、2:1）和3种尺度（对应像素面积为\(128^2\)、\(256^2\)、\(512^2\)），因此每个滑动位置共生成9个锚框。提升Faster
+R-CNN模型的图像分辨率可提供更多的图像信息，进而提升目标识别精度；但考虑到本研究的数据集包含大量小缺陷，本研究通过减小锚框面积进行适配。该调整虽有助于小缺陷的检测，但可能会增加检测时间，影响推理速度，因此需要在检测速度和精度之间进行权衡。
+
+5 实验结果
+
+本研究基于MATLAB实现，利用MathWorks的交互界面构建深度学习框架，完成网络的构建、训练和预测。
+
+5.1 Faster RCNN模型训练
+
+本研究选择\textbf{ResNet{[}18{]}}作为特征提取器，针对X射线灰度图的特点，将ResNet模型的输入层修改为单通道灰度图输入。研究使用的数据库为小样本数据集，包含453张标注图像，输入图像的固定分辨率为224×224像素。图像数据经卷积层、池化激活层的多轮迭代后，输入至全连接层，完成焊缝缺陷检测。数据集按8:2的比例划分，80\%用于模型训练，20\%用于测试；并按照4.2.1节的方法，采用两种数据增强模型扩充训练数据。
+
+所有实验的Faster
+RCNN模型均采用\textbf{ResNet101}作为骨干网络，同时为减少小样本带来的误差，优化了随机梯度下降（SGD）算法，引入\textbf{Adam优化器}，并设置动量为0.9；针对样本量有限的问题，将初始基础学习率（LR）设置为0.001，且在整个训练过程中保持学习率不变，以适应不同训练阶段的需求。
+
+通常，训练初期需要较高的学习率以加快训练速度，本研究同时对其他模型参数进行了调优：交并比（IoU）设置为0.5，训练轮次（epochs）设置为100。模型性能的评价指标为基于精确率-召回率曲线的\textbf{平均精度（AP）}，即各类别的平均精度值，平均精度越高，模型的识别效果越好。
+
+实验硬件配置为：Intel Core i7-9750H处理器、NVIDIA GeForce RTX
+2080显卡、32 GB内存；软件环境为：Windows 10 Pro操作系统、MATLAB R2019b。
+
+5.2 结果分析与评价指标
+
+本节展示原始Faster
+RCNN模型的实验结果，并与后续章节（见6节）介绍的其他模型进行对比。为验证定位过程的必要性，本研究还开展了对比实验，将这些模型的性能与基于ResNet-101的原始模型进行对比，模型的差异体现在特征提取器的预训练模型上。表2展示了原始模型在不同锚框数量下的性能，表3补充了不同模型的评价指标，各指标的计算公式如下：\\
+\(AP=\int_{0}^{1} precision ( recall ) d( recall )\)\\
+\(Accuracy (A C C)=\frac{T P+T N}{T P+F P+F N+T N} \quad (4)\)\\
+\(Sensitivity (S E)=\frac{T P}{T P+F N} \quad (5)\)\\
+\(Precision (P R E)=\frac{T P}{T P+F P} \quad (6)\)\\
+\(F1 score =\frac{2 × Precision × Recall }{ Precision + Recall } \quad (7)\)
+
+各评价指标的定义为：
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	\textbf{灵敏度（SE）}：即召回率（Recall），为气孔缺陷图像的正确预测率；
+	\item
+	\textbf{精确率（PRE）}：为所有预测为正样本的图像中，真实正样本的占比。
+\end{enumerate}
+
+为全面评估模型性能，本研究选取了多项评价指标。训练结果表明，Faster
+RCNN通过区域建议网络生成的优质特征，有效提升了检测性能；本研究将ResNet
+101替换为347层的残差网络后，模型的平均精度提升至44.5\%。图7为Faster
+RCNN检测器的精确率-召回率（PR）曲线，展示了模型的阳性预测值（PPV）与真阳性率（TPR）的关系。
+
+图8为缺陷检测的预测图像，表4详细展示了该图像的预测结果和标注信息，图像中的分数为每个边界框（对应检测到的缺陷）的预测分数，由模型预测过程自动生成。表4中，\textbf{气孔框}列为预测的气孔边界框，\textbf{真实气孔框}列为气孔的真实边界框，\textbf{分数}列为预测概率值，\textbf{预测标签}列为模型预测的焊缝缺陷类型，\textbf{真实标签}列为焊缝缺陷的实际类型。
+
+实验结果表明，该模型能够精准定位焊缝缺陷区域，图像中的气孔缺陷清晰可辨，但模型在焊缝缺陷分类中可能存在一定误差。在部分场景下，缺陷类型的判断较为容易，但精准识别缺陷的实际坐标仍存在难度，这是未来工作中模型优化的重点方向。
+
+测试结果表明，与其他作为Faster
+RCNN模型特征提取器的深度卷积神经网络（DCNN）相比，\textbf{7×7的滑动窗口尺寸}实现了最优的检测性能；该模型的性能优于YOLOv2等其他目标检测模型（详见下节），在各类气孔缺陷的检测中表现出良好的效果。尽管每张图像中存在大量缺陷，易导致边界框重叠，但该模型仍能实现缺陷的有效检测与定位。
+
+训练模型高性能的关键因素之一为\textbf{缺陷类型数据的扩充}，大规模、多样化的数据集使模型的鲁棒性更强，能够更准确地识别各类缺陷。总体而言，实验结果证明了本研究选取的缺陷识别方法的有效性，训练后的模型性能优于其他目标检测模型，在各类气孔缺陷检测中表现突出；但仍需进一步优化模型、扩充数据集，以提升缺陷识别的精度。
+
+5.3 处理时间
+
+如前所述，Faster
+RCNN模型在GPU上的训练时间为4小时，在无额外图像处理硬件的普通个人计算机上，处理速度为每秒2帧。为实现实时检测，本研究将检测和分类的间隔设置为0.5秒，平均检测精度达95.15\%；在Geforce
+RTX2080 GPU上，单张图像的平均检测时间为2秒。
+
+图8展示了部分测试结果，可见\textbf{高置信度的检测结果具有更高的精度}，因此高置信度下的真阳性样本数量显著增加。
+
+6 与YOLOv2的对比分析
+
+6.1 YOLOv2概述
+
+YOLO（You Only Look Once）系统为实时目标检测提供了开创性的方法，与Faster
+R-CNN等两阶段目标检测器不同，YOLOv2采用更快速的\textbf{单阶段网络}。本研究采用的YOLOv2通过卷积神经网络对输入图像进行深度学习，生成精准的网络预测结果，再由目标检测器对预测结果进行解码，得到精准的边界框。模型架构见图9，YOLOv2目标检测网络由两个相互连接的子网络构成：\textbf{特征提取网络}和\textbf{检测网络}。
+
+特征提取网络通常基于预训练卷积神经网络构建，是提取有效特征的核心，本研究采用ResNet101作为预训练卷积神经网络；检测网络的规模小于特征提取网络，但对精准目标检测至关重要，由多个卷积层和YOLOv2专用层构成。
+
+本研究利用\textbf{yolov2Layers计算机视觉函数}构建YOLOv2目标检测网络，该工具以预训练的ResNet101特征提取网络为基础，自动构建YOLOv2网络：移除主网络中特征层之后的所有层，无缝融合检测子网络，大幅简化了模型开发过程。检测子网络由一系列相连的卷积层、ReLU层和批量归一化层构成，并加入了YOLOv2变换层和YOLOv2输出层：变换层将卷积神经网络的原始输出转换为适用于目标检测的格式，输出层则定义锚框参数，并实现检测器训练所用的损失函数。目标检测模型的详细设计见图10。
+
+利用yolov2Layers构建YOLOv2网络时，需定义多个参数，包括\textbf{网络输入尺寸}、\textbf{锚框}和\textbf{特征提取网络}：
+
+\begin{enumerate}
+	\def\labelenumi{\arabic{enumi}.}
+	\item
+	输入尺寸是关键参数，不仅决定了网络的最小尺寸要求，还与训练图像的尺寸匹配，同时影响计算量；建议选择与训练图像尺寸接近且满足网络最小尺寸要求的输入尺寸，本研究设置为{[}224
+	224 3{]}；
+	\item
+	锚框基于训练数据中的目标尺寸估计，本研究通过Anchor Boxes
+	Estimates工具箱分析训练数据，得到锚框的估计值，锚框作为网络运行过程中目标检测的参考点；
+	\item
+	训练数据需先通过变换函数处理，以保证与网络的兼容性；锚框的数量由应用的实际需求确定，其估计值通过合适的方法获得。
+\end{enumerate}
+
+6.2 YOLOv2的实验结果
+
+本研究的算法基于MATLAB实现，借助MathWorks的深度学习框架完成模型的构建、训练和预测。为评估方法的性能，本研究开展了大量测试，结果见图11，图像中的分数为每个边界框（对应检测到的缺陷）的预测分数，由模型预测过程自动生成；表5详细展示了该图像的预测结果，其中\textbf{分数}列为预测概率值，\textbf{预测标签}列为模型预测的焊缝缺陷类型，\textbf{真实标签}列为焊缝缺陷的实际类型。
+
+本研究还统计了各模型的推理时间，并选取多项指标对Faster
+RCNN和YOLOv2的性能进行对比，结果见表6。对比分析表明，本研究提出的Faster
+RCNN模型性能优于YOLOv2；同时，图8中测试图像的缺陷预测结果验证了该检测模型的鲁棒性。
+
+与Faster
+RCNN模型相比，YOLO存在一定的局限性：定位误差更大，且与基于区域建议的方法相比，召回率相对较低。因此，本研究的核心重点为\textbf{在保证分类精度的前提下，提升模型的召回率和定位精度}。实现模型的高性能通常需要采用更复杂的网络架构，或融合多个模型。
+
+综上，实验结果表明，与其他深度卷积神经网络和YOLOv2模型相比较，本研究提出的方法具有显著的有效性。
+
+7 结论
+
+本研究采用先进的深度学习技术Faster-RCNN，有效解决了X射线图像中焊缝缺陷检测的难题。与传统方法不同，该算法在高维空间中运行，大幅提升了检测能力，能够精准识别并定位焊缝缺陷区域，同时给出缺陷类型的预测概率，辅助检测人员高效分析X射线图像。为保证模型的最优训练性能，本研究强调了\textbf{图像增强}和\textbf{去噪技术}的重要性。实验结果表明，本研究提出的目标检测系统表现出良好的性能，平均精度（AP）达44.5\%，在克服传统方法的局限性方面展现出良好的潜力，尤其在处理不同尺寸目标和解决数据稀缺问题上具有显著优势。
+
+本研究的核心挑战是解决\textbf{实际工业问题}------主要针对X射线焊接数据库的视觉检测，而非基于现成的基准数据集开展研究。X射线焊接图像的样本量不足是亟待解决的挑战，尤其是当图像质量低、缺陷类型多样时，这一问题更为突出；此外，每张X射线图像中均存在大量细小粘连的气孔缺陷，为合适深度神经网络目标检测器的选择及其性能优化带来了诸多问题。
+
+针对射线检测数据有限的问题，本研究引入\textbf{数据增强技术}，实现了模型的高效训练，提升了整体性能，实验结果表明该方法显著改善了测试图像的检测性能。为解决X射线焊接图像稀缺、类型多样的问题，本研究提出了一种基于目标检测模型的焊缝缺陷检测新方法，重点检测名为"气孔"的小尺寸缺陷。该缺陷检测过程需要\textbf{调整锚框的尺寸和比例}，以更好地适配小目标；通过实验确定了区域建议框的最优数量。
+
+本研究是笔者之前研究{[}38{]}的延续，此前的研究聚焦于焊缝缺陷的分类，而本研究实现了焊缝缺陷的检测与定位，未来可将这两项计算机视觉任务结合，实现视觉检测过程的自动化。
+
+与多种深度卷积神经网络（DCNN）模型的对比结果表明，本研究提出的ResNet模型性能更优，甚至优于YOLOv2。综上，本研究证明了\textbf{预训练模型先用于焊缝缺陷分类，再进行目标检测}的方法，在X射线图像视觉检测中具有较高的效率。
+
+本研究提出的焊缝缺陷检测方法不仅解决了当前的技术挑战，还为X射线数据分析领域自动化视觉检测过程的未来发展奠定了基础。未来的研究方向包括：\textbf{扩充数据集}、\textbf{优化算法以更针对性地检测焊缝缺陷}、\textbf{拓展应用范围}、\textbf{探索半监督学习技术}；此外，将\textbf{分割技术}和\textbf{目标检测技术}融合，构建更鲁棒、更精准的缺陷检测系统，具有良好的应用前景。
+
 
 \translationpage{原文}{2}
 
-Computer-aided weld defect recognition is transforming the field of Non-Destructive Testing
-by addressing the shortcomings of slow and error-prone manual inspections.
-This technology provides a reliable solution for detecting changes in pipeline conditions and structural damage.
-While conventional neural networks fall short in precise fault localization,
-deep learningbased object detection techniques step in to fill the gap.
-Addressing a real-industrial problem, particularly visually inspecting an X-ray welding database,
-without relying on a pre-existing benchmark presents a significant challenge in this field.
-Additionally, the poor quality of our welding data, which is riddled with small, sticky porosity in each image,
-poses several issues related to selecting the appropriate deep neural network object detector.
-This is yet another challenge that needs to be tackled.
-To direct these challenges, we introduced a novel approach based on the renowned Faster RCNN architecture
-to develop a model specifically designed for weld defect detection and recognition.
-This study dives deep into the inner workings of this newly adopted methodology.
-In our research, we have thoroughly parameterized, trained, tested, and validated this model.
-Our approach stands out through a comparative analysis with YOLO and DCNN models, highlighting the superiority of our Faster RCNN-based system.
-By evaluating its robustness and efficiency, our study reveals that the Faster RCNN model outperforms its counterparts
-in weld defect detection and localization for this specific small and sticky porosity defect type.
-This stands as a testament to effectively setting a new standard in this area.
-
-% 1. Intro
-In the process of constructing water pipes, both internal and external welding operations are performed to secure the metal parts together.
-These critical welding tasks are subject to scrutiny by human experts who possess the ability to identify various types of welding defects, including cracks and porosities, which can arise from imperfections in the joints.
-This fact could lead to the limited life of the pipes.
-So, quality control is necessary to guarantee the best quality of the pipelines.
-The piping check must be carried out without destroying the component.
-Online nondestructive testing (NDT) is currently tested using machine vision techniques.
-Industries employ inspection techniques to verify that the required specifications of a material, structure, or system are being met,
-all while ensuring the integrity of the original part remains intact.
-Within this field, welds undergo inspection through NDT techniques like radiography,
-wherein the radiation is passed through the specimen to identify defects.
-X-ray imaging is particularly effective for inspecting thin materials,
-offering detailed visibility and resolution to detect defects with precision.
-On the other hand, gamma-ray imaging is employed when dealing with thicker components.
-To facilitate analysis and processing, the results can be digitized using film radiography,
-computed radiography,
-or computed tomography.
-However, digitized images often exhibit low quality and diminished contrast,
-making the examination of weld defects a laborious task.
-Unfortunately, these characteristics interfere with object interpretation, classification, and recognition.
-As a result, artificial intelligence technology for computer vision applications is invented
-to help the expert evaluate the results.
-In this context, these methods are essential research approaches
-that replace the skilled professional in weld defect detecting and localizing,
-offering a neutral and cost-effective alternative.
-To achieve a complete comprehension of the image, our objective extends beyond image categorization.
-We strive to precisely estimate the identities and precise positions of objects present within each image.
-This methodology is commonly referred to as object detection,
-encompassing various sub-tasks such as face detection, pedestrian detection, and spinal detection.
-Object detection is a crucial field in computer vision,
-offering valuable insights for comprehending images and videos.
-Its significance is evident in various applications such as image classification, human behavior analysis, facial recognition, and autonomous driving.
-The advancement of neural networks and related learning systems has greatly influenced the development of network algorithms and revolutionized object recognition techniques.
-However, the challenges posed by diverse viewpoints, occlusions, poses, and lighting conditions make achieving precise object recognition with accurate localization a complex task.
-As a result, this area has garnered substantial attention in recent years from researchers and practitioners alike.
-Object detection involves two primary tasks:
-determining the spatial position of objects within a frame (object location)
-and assigning the appropriate class label to each object (object classification).
-With the advent of deep neural networks (DNN) in the field, significant advancements have been made,
-particularly with the introduction of region-based convolutional neural networks (R-CNN).
-These innovations have brought about substantial improvements in the detection and recognition of objects,
-enabling more accurate and efficient object localization and classification.
-Their deeper architectures enable the learning of complicated features compared to shallow ones.
-The strength of expressiveness and the robust learning of algorithms also allow the learning representations of informative objects without having to manually design features.
-
-Many upgraded models have been suggested as R-CNN proposals,
-which jointly optimize classification tasks and bounding box regression.
-Fast R-CNN utilizes another sub-grid to generate regional proposals,
-allowing for precise object localization and classification.
-On the other hand, YOLO (You Only Look Once) performs object recognition using a fixed grid regression approach,
-enabling real-time object detection and making it suitable for consumer products such as Google Photos and Pinterest Visual Search.
-These methods have demonstrated fast and efficient performance, even on mobile devices.
-Moreover, the availability of pre-trained models with varying degrees of recognition performance improvement has made it easier to achieve accurate object recognition and real-time rendering.
-However, professionals may find it challenging to determine the best architecture for their specific application.
-Standard metrics like mean average precision (mAP) provide limited insight,
-as other factors such as computational implementation, execution time, and memory consumption also play crucial roles in determining the suitability of a vision system.
-
-In fact, this problem of precision and accuracy in the welding area is due, on the one hand, to the variety of classes of weld defects,
-on the other hand, to the fact that the characteristics generated are insufficient for obtaining a good recognition quality in order to effectively detect the fault.
-Classic machine learning (ML) algorithms have been widely researched and applied,
-following the traditional ML application scheme and employing feature mining techniques.
-Despite the time-consuming and less accurate nature of certain ML algorithms like Artificial Neural Networks (ANN),
-their ease of implementation has been recognized.
-However, with the emergence of deep learning,
-the utilization of large datasets and automatic feature extraction has significantly improved defect detection capabilities.
-In the same context, there are a number of studies aimed at optimizing such a control method with the objective of creating an automatic X-ray image inspection and analysis system,
-but the application of deep learning techniques in weld defect detection remains challenging with limited prior work or established methods in this area.
-
-Research has been conducted in the literature on deep learning models for weld defect detection based on pre-trained convolutional neural network models.
-Nevertheless, adopting a dedicated deep learning architecture for weld defect detection to suit specific data continues to pose a significant challenge that could be approached from various angles.
-In order to overcome the limitations of previous work and address the complexities of our dataset, we leverage Transfer Learning by applying a pre-trained network.
-
-Our objective is to customize a network model tailored to our specific use case and to detect multiple defects of new datasets with respectable precision.
-As the usual trade of the object detection process is applied for RGB images and generally separated objects, the detection algorithm becomes more granted.
-On the contrary, the new trade of X-ray datasets consisting of sticky defects with small sizes makes the detection procedure more complex.
-Recently, works based on deep learning have done breakthroughs in perception-based applications,
-but a big amount of data is always needed to form a model from scratch.
-For instance, Faster R-CNN demands around 150,000 natural images to obtain the highest yield,
-and lack of training data poses problems in using this new technology.
-
-The insufficiency of X-ray welding images is a challenge that needs to be addressed, especially if they are acquired with low quality and a variety of types.
-Moreover, the detection of X-ray weld defects with the abundance of small sticky porosity in every single image leads to several issues related to the selection of the proper deep neural network object detector and its performance.
-For these reasons, this technology based on a deep learning algorithm to detect defects in welds is newly done.
-In this paper, we demonstrate that by using a very small training dataset, high accuracy, and higher efficiency can be achieved by developing a deep learning network previously trained on natural images.
-So, we adjust the Faster R-CNN network using 453 X-ray welding images
-and we compare it with traditional and new models of detection.
-In this article we seek to explore execution time and testing results and why not the performance at the time of testing.
-Within this study, comprehensive research is carried out to outline the AI models and diverse properties across multiple application areas together with the welding field.
-The content of this article is organized as follows.
-Section 2 gives a brief introduction to the deep learning background and the fundamental structure of CNN.
-In Section 3, the architecture and structure of object detection are presented in detail.
-Then, the Faster R-CNN application results are shown and compared to the other models in Sections 4–6, respectively.
-At last, some concluding remarks are presented and further potential directions in the future are outlined in Section 7.
+\foreach \n in {1,...,17} {
+	\includegraphics[width=\linewidth, page=\n]{literature_translations/trans2_orig.pdf}
+	\vspace{5mm}
+}
