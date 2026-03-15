@@ -2,77 +2,56 @@
 \documentclass{cjlu_literature_review}
 \usepackage[colorlinks=true,linkcolor=black,citecolor=blue,urlcolor=blue]{hyperref}
 \usepackage[backend=biber,style=gb7714-2015,sorting=none]{biblatex}
-\addbibresource{review_refs.bib}
+\addbibresource{review_refs.bib} % 关联修改后的BibTeX文件
 
+% 封面信息
 \studentname{李康峰}
 \studentid{2201400216}
 \major{自动化}
-\classinfo{22 工试\hspace{0.5em}2 班}
+\classinfo{22 工试 2 班}
 \thesistitle{基于人工智能的缺陷射线图像识别与检测系统设计}
 \advisor{洪宇翔}
 \school{机电工程学院}
 \coverdate{2025 年 12 月 30 日}
 
 \begin{document}
-
-\makeopeningcover
-
-\section{研究背景与意义}
-\label{sec:background}
-
-本节用于说明课题背景与意义。后文可通过“见第~\ref{sec:background} 节”进行交叉引用。
-
-\section{研究现状}
-\label{sec:related}
-
-文献对比可引用式（\ref{eq:score}）与表~\ref{tab:compare-template}。
-
-\begin{equation}
-\label{eq:score}
-S=\alpha A+\beta B
-\end{equation}
-
-\begin{table}[htbp]
-\centering
-\caption{研究方法对比模板}
-\label{tab:compare-template}
-\begin{tabular}{|c|c|c|}
-\hline
-方法 & 优点 & 局限 \\
-\hline
-A & 精度高 & 成本高 \\
-\hline
-B & 速度快 & 鲁棒性一般 \\
-\hline
-\end{tabular}
-\end{table}
-
-例如：第~\ref{sec:related} 节结合表~\ref{tab:compare-template}进行分析。
-
-文献综述能较全面地反映与本课题直接相关的国内外研究成果，特别是近年来的最新成果和发展趋势，
-能指出该课题所需要进一步解决的问题，例如可参考文献~\cite{zhang2024review,wang2023method}.
-
-文献综述内容需体现：1、综合性。要尽可能把所有重要研究成果搜集到手，使各种派别的观点清楚明晰，
-不遗漏重要的派别和观点。2、描述性。要求对被介绍的观点作客观性的描述。在归纳各种观点时要抓住要点，
-表述时应简明扼要。3、评价性。要对各种成果进行恰当而中肯的评价，并表明作者自己的观点和主张。
-文献综述重点在于“述”，要点在于“评”。
-
-文献综述主体部分的结构，一般应包括该课题的“研究历史”的回顾、“研究现状”的对比，以及研究的“发展趋势”。
-文献综述的格式规范与正文的通用格式一致。一般地说，为撰写本科毕业设计（论文）提供观点和材料基础的文献综述字数至少要在 3000 字以上。
-
-\literaturereviewrefheading
-要求不少于 20 篇期刊文献（英文文献不少于 5 篇，且必须包含要翻译的 2 篇英文文献）。
-
-\printbibliography[heading=none]
-
-% 参考文献类型速查（模板说明，不在正文展示，可按需保留/删除）
-% [M] 专著
-% [J] 期刊文章
-% [C] 论文集
-% [A] 论文集中的析出文献
-% [S] 标准
-% [P] 专利
-% [N] 报纸文章
-% [EB/OL] 电子文献
-
+	\makeopeningcover
+	
+	\section{研究背景与意义}
+	\label{sec:background}
+	
+	焊接作为现代工业生产中核心的构件连接技术，已广泛渗透到航空航天、长输管道、压力容器、汽车制造等关键领域 \cite{Hu2020_DeepLearningWeldDefect, Zuo2025_EndToEndWeldingDefect, Dai2025_CCBFERCNN}。焊缝质量直接决定工业产品的结构安全性与使用寿命，但在焊接过程中，受温度波动、设备精度偏差、工艺参数不稳定等多重因素影响，极易产生气孔、裂纹、未熔合、未焊透、夹渣等各类缺陷 \cite{Valavanis2010_MulticlassDefectDetection, Zuo2025_EndToEndWeldingDefect}。这些缺陷若未能被及时且准确地检测出来，可能引发结构失效、设备故障，甚至导致重大安全事故，因此焊缝缺陷检测成为工业质量控制体系中的关键环节 \cite{Dai2025_CCBFERCNN, Ajmi2023_FasterRCNNWeldDefects}。
+	
+	X射线检测技术凭借成像直观、缺陷定位精准、不损伤工件等独特优势，成为焊缝内部缺陷检测的主流无损检测（NDT）方法 \cite{Yu2025_IndustrialDefectRecognition, Mery2015_GDXrayDataset}。传统X射线检测模式依赖人工目视评估胶片或数字化图像，不仅劳动强度大、检测效率低下，还容易受到检测人员经验水平、主观判断差异及视觉疲劳等因素的影响，进而导致缺陷漏检与误判 \cite{Ajmi2023_FasterRCNNWeldDefects, Hou2020_ReviewWeldDefectDetection}。尤其在低质量X射线图像场景（如低亮度、低对比度、雾化现象）中，人工检测的可靠性会进一步下降 \cite{Zuo2025_EndToEndWeldingDefect, Yu2025_IndustrialDefectRecognition}。
+	
+	随着人工智能与计算机视觉技术的飞速发展，深度学习方法凭借其强大的自动特征提取与模式识别能力，为焊缝缺陷智能检测提供了全新的技术路径 \cite{Hu2020_DeepLearningWeldDefect, Guo2021_ContrastEnhancementGAN}。与传统机器学习依赖人工设计特征的局限性不同，深度学习模型能够从海量X射线图像中自主学习缺陷的深层语义特征，显著提升检测的自动化程度与精度 \cite{Dai2025_CCBFERCNN, He2015_DeepResidualLearning}。开展基于深度学习的焊缝X射线图像缺陷识别研究，不仅能够有效解决传统人工检测面临的瓶颈问题，满足现代工业对高效、精准质量控制的需求，还能推动无损检测技术向智能化、自动化方向迈进，具备重要的理论价值与工程应用意义 \cite{Yu2025_IndustrialDefectRecognition, Chen2018_EncoderDecoderSegmentation}。
+	
+	\section{研究现状}
+	\label{sec:related}
+	
+	\subsection{图像预处理技术研究}
+	
+	图像预处理是提升焊缝缺陷识别性能的基础性步骤，其核心目标在于去除图像噪声干扰、增强缺陷与背景的对比度，为后续的特征提取与缺陷检测环节提供高质量的输入图像 \cite{Hu2020_DeepLearningWeldDefect, Valavanis2010_MulticlassDefectDetection}。传统预处理方法主要涵盖滤波去噪、直方图均衡化、对比度增强等技术手段，相关研究已形成较为成熟的应用体系 \cite{Valavanis2010_MulticlassDefectDetection, Kumar2014_TextureFeatureWeldFlaws}。胡桉得等 \cite{Hu2020_DeepLearningWeldDefect} 通过对比均值滤波、中值滤波、高斯滤波等五种去噪方法的峰值信噪比（PSNR），证实中值滤波在保留焊缝缺陷边缘信息的同时，能够有效抑制噪声；采用Sin函数非线性变换实现图像灰度拉伸，将单峰型灰度直方图转化为双峰型，显著提升了焊缝区域与背景的区分度。
+	
+	针对低质量X射线图像的处理难题，东北大学刘金海教授团队 \cite{Zuo2025_EndToEndWeldingDefect, Yu2025_IndustrialDefectRecognition} 提出自适应预处理模块（APM），该模块集成了去雾、白平衡、伽马校正等六种可微分滤波器，通过轻量级CNN动态预测预处理参数，实现图像亮度与对比度的自适应优化，成功解决了低质量图像中缺陷可见性差的问题。实验结果表明，该模块在雾化（FWD）和低光（LWD）数据集上，使平均精度（AP）分别从0.722和0.709提升至0.834和0.803。此外，CLAHE直方图均衡化、小波变换去噪等方法也被广泛应用于焊缝X射线图像预处理 \cite{Wei2020_MultiTargetDefectYOLOv3, Cheng2022_YOLOv5Lightweight}，但传统方法多采用固定参数处理方式，缺乏对不同质量图像的自适应能力，而基于深度学习的自适应预处理方法正逐渐成为该领域的研究热点 \cite{Guo2021_ContrastEnhancementGAN, Chen2022_ImprovedCrossEntropyLoss}。
+	
+	\subsection{缺陷识别模型研究}
+	
+	缺陷识别模型是焊缝X射线图像智能检测的核心所在，随着深度学习技术的持续发展，模型架构已从传统卷积神经网络逐步向目标检测、语义分割及端到端集成系统演进，其核心目标是不断提升缺陷识别的精度、泛化能力与工程实用性 \cite{He2015_DeepResidualLearning}。
+	
+	卷积神经网络（CNN）凭借局部连接、权值共享及平移不变性等特性，有效降低了模型参数量并提升了特征提取效率，成为焊缝缺陷识别的基础架构 \cite{Simonyan2014_VeryDeepCNN, Hu2020_DeepLearningWeldDefect}。针对传统CNN在激活函数与池化策略上的局限性，胡桉得等 \cite{Hu2020_DeepLearningWeldDefect, Guo2021_ContrastEnhancementGAN} 构建了9层CNN模型，采用改进的ELU激活函数解决ReLU函数在负输入区域的硬饱和问题，增强了模型对输入噪声的鲁棒性；同时提出综合考虑池化域特征分布的自适应池化方法，根据特征方差动态调整池化策略，在气孔、裂纹、未熔合、未焊透及无缺陷5类图像识别任务中，实现了98.13\%的高准确率。为解决工业场景中焊缝缺陷样本稀缺导致的模型过拟合问题，该研究引入域间异构迁移学习，基于ImageNet数据集预训练的VGG16模型，通过冻结底层卷积层、微调高层网络的方式迁移至焊缝缺陷数据集，全参数微调模型的识别准确率达到97\%，证实了迁移学习在小样本缺陷识别中的有效性 \cite{Guo2021_ContrastEnhancementGAN, Irvin2019_CheXpertDataset, Li2010_ImageNet}。
+	
+	针对焊缝缺陷尺寸差异大（小至0.1mm的气孔，大至100mm的未焊透）导致的多尺度识别难题，戴铮等 \cite{Dai2025_CCBFERCNN, Cao2019_ImprovedFasterRCNN} 提出CCBFE-RCNN模型。该模型以Cascade-RCNN为基础架构，通过合并卷积层结构融合3×3与5×5卷积核特征，增强了对不同尺度缺陷的特征捕捉能力；结合FPN特征金字塔网络，将浅层高分辨率特征与深层高语义特征进行跨层级融合，有效提升了小尺寸缺陷的检出率与大尺寸缺陷的定位精度。为抑制模型过拟合，引入BFE（Batch Feature Erasing）特征批量消除模块，通过随机擦除特征图区域强化模型对关键特征的学习；同时改进损失函数，设置超参数平衡正负样本权重，并对未准确识别含缺陷图像加大惩罚力度 \cite{Chen2022_ImprovedCrossEntropyLoss, Zhang2021_ModifiedYOLOv3}。该模型在自制熔焊焊缝数据集上的全类别平均召回率与精确率分别达到93.09\%和91.92\%，较Cascade-RCNN模型提升5\%以上，且在DAGM、NEU等工业缺陷数据集上表现出良好的泛化能力，为多尺度焊缝缺陷识别提供了有效方案 \cite{Wei2020_MultiTargetDefectYOLOv3, Zhang2021_ModifiedYOLOv3}。
+	
+	目标检测模型能够同时实现缺陷定位与分类，满足工业场景中对缺陷位置与类型的同步需求，在焊缝缺陷检测中得到广泛应用 \cite{Ajmi2023_FasterRCNNWeldDefects, Girshick2015_FastRCNN}。Ajmi等 \cite{Valavanis2010_MulticlassDefectDetection, Ajmi2023_FasterRCNNWeldDefects} 针对小样本、粘性气孔缺陷检测场景，基于Faster R-CNN架构优化锚框设计，通过3种尺度与3种长宽比的锚框组合适配小尺寸缺陷检测需求；采用交替训练策略实现区域提议网络（RPN）与Fast R-CNN的特征共享，减少了模型参数量并提升了推理效率。该模型在仅含453张X射线图像的数据集上实现44.5\%的平均精度（AP），显著优于YOLOv2模型 \cite{Redmon2015_YOLO}，且通过水平翻转、尺度变换、颜色通道隔离等数据增强技术，有效缓解了小样本数据集的过拟合问题 \cite{Valavanis2010_MulticlassDefectDetection, Kumar2014_TextureFeatureWeldFlaws}。此外，YOLO系列模型凭借实时检测优势也被应用于焊缝缺陷检测，程松等 \cite{Guo2021_ContrastEnhancementGAN, Cheng2022_YOLOv5Lightweight} 提出的轻量型YOLOv5-Tiny改进模型，通过在主干网络加入注意力机制、采用深度可分离卷积减少计算量，在保证检测速度的同时提升了缺陷识别精度。
+	
+	语义分割模型专注于缺陷区域的精确提取，为缺陷面积测算、严重程度评估等量化分析提供支撑，成为高精度焊缝缺陷检测的重要研究方向 \cite{Ronneberger2015_UNet, Yu2025_IndustrialDefectRecognition}。Yu等 \cite{Irvin2019_CheXpertDataset, Yu2025_IndustrialDefectRecognition} 创新地提出跨领域预训练策略，利用医疗X光图像（CheXpert数据集）与工业X射线图像在成像原理、图像特征上的相似性，预训练ResNet50骨干网络后迁移至焊缝缺陷分割任务。实验表明，该方法在GDXray-weld数据集上实现73.92\%的mIoU，较传统ImageNet预训练模型 \cite{Li2010_ImageNet} 提升6.58\%，为解决工业缺陷数据集样本不足问题提供了新思路 \cite{Mery2015_GDXrayDataset, Chen2018_EncoderDecoderSegmentation}。
+	
+	为满足工业现场的实际应用需求，端到端集成化检测系统成为研究热点，其核心是将图像预处理、特征提取、缺陷检测、结果可视化等功能模块进行联合优化，实现从原始图像输入到缺陷识别结果输出的全流程自动化 \cite{Zuo2025_EndToEndWeldingDefect, Chen2018_EncoderDecoderSegmentation}。东北大学刘金海教授团队 \cite{Zuo2025_EndToEndWeldingDefect, Guo2021_ContrastEnhancementGAN} 提出自适应渐进学习框架，该框架包含自适应预处理模块（APM）与渐进特征提取网络（PFEN）两大核心组件：APM通过可微分滤波器（去雾、白平衡、伽马校正等）动态优化低质量图像的亮度与对比度，PFEN则通过多视角特征提取器、大核感知器（LKP）和特征重组机制模拟专家从粗浏览到聚焦观察的渐进式检测逻辑。该系统在雾化（FWD）和低光（LWD）数据集上的平均AP分别达到86.7\%和83.8\%，参数量仅23.4M，推理速度15.9ms/图像，兼顾检测精度与工程实用性，已成功集成至工业焊接X射线图像评估系统。在用户界面与部署方面，相关研究多基于Qt等图形界面框架设计直观易用的操作平台，实现图像导入、缺陷检测触发、结果可视化展示等功能，为工业现场操作人员提供便捷的交互方式 \cite{Hu2020_DeepLearningWeldDefect, Ajmi2023_FasterRCNNWeldDefects}。
+	
+	% 输出参考文献（国标GB/T 7714-2015格式）
+	%\literaturereviewrefheading
+	%\printbibliography[heading=none]
+	\printbibliography
+	
 \end{document}
