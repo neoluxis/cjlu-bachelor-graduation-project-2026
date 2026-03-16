@@ -20,13 +20,13 @@
 \section{研究历史回顾}
 焊缝缺陷的自动化检测研究早期主要依赖数字图像处理与人工特征工程，通过滤波去噪、形态学处理、边缘检测与纹理特征等方法实现缺陷增强与识别。这类方法在成像质量较高、背景相对简单的场景中具备一定有效性，但面对工业射线图像常见的低对比度、噪声干扰与缺陷形态多样性时，鲁棒性与泛化能力不足，细小缺陷（如气孔）与弱对比缺陷（如裂纹）容易漏检 \cite{Valavanis2010_MulticlassDefectDetection, Kumar2014_TextureFeatureWeldFlaws, Hu2020_DeepLearningWeldDefect}。
 
-随后，基于浅层学习器（如 SVM、传统神经网络等）的方案在一定程度上提升了分类效果，但仍高度依赖手工特征设计与数据分布假设，难以适配工业现场多工况变化。近年来，深度学习以端到端特征学习能力成为主流路线：从早期 CNN 分类网络，到两阶段/一阶段目标检测模型，再到语义分割模型与端到端系统集成，研究焦点逐步从“是否缺陷”走向“缺陷在哪里、形状如何、面积多大”的精细化分析 \cite{He2015_DeepResidualLearning, Girshick2015_FastRCNN, Ren2017_FasterRCNN, Ronneberger2015_UNet}。
+随后，基于浅层学习器（如 SVM、传统神经网络等）的方案在一定程度上提升了分类效果，但仍高度依赖手工特征设计与数据分布假设，难以适配工业现场多工况变化。近年来，深度学习以端到端特征学习能力成为主流路线：从早期 CNN 分类网络（如 VGG 等），到两阶段/一阶段目标检测模型（Faster R-CNN、YOLO 等），再到语义分割模型与端到端系统集成，研究焦点逐步从“是否缺陷”走向“缺陷在哪里、形状如何、面积多大”的精细化分析 \cite{He2015_DeepResidualLearning, Simonyan2014_VeryDeepCNN, Girshick2015_FastRCNN, Ren2017_FasterRCNN, Redmon2015_YOLO, Ronneberger2015_UNet}。
 
 \section{研究现状对比}
 现有研究主要可从“图像预处理”和“缺陷识别模型”两条主线展开。
 \begin{enumerate}[leftmargin=*]
   \item \textbf{预处理与增强：} 传统方法（高斯/中值滤波、直方图均衡化等）实现简单、可解释性强，但对不同质量图像往往需要人工调参，适应性不足。面向低质量射线图像的自适应预处理与增强正成为热点 \cite{Hou2020_ReviewWeldDefectDetection, Hu2020_DeepLearningWeldDefect, Guo2021_ContrastEnhancementGAN}。
-  \item \textbf{检测/分割模型：} 目标检测模型可同时输出缺陷类别与位置，适用于工程场景快速定位，但对缺陷边界与形态刻画有限。语义分割能够给出像素级缺陷区域，便于后续定量评估与严重度分析。针对工业小样本与多尺度缺陷，研究者在网络结构、特征融合与正负样本不平衡等方面持续改进，例如改进 Faster R-CNN 以适配小样本与小目标 \cite{Ajmi2023_FasterRCNNWeldDefects}，以及通过级联检测、特征金字塔与特征擦除等机制提升多尺度缺陷识别能力 \cite{Dai2025_CCBFERCNN}。
+  \item \textbf{检测/分割模型：} 目标检测模型可同时输出缺陷类别与位置，适用于工程场景快速定位，但对缺陷边界与形态刻画有限；一阶段检测（如 YOLO）具备实时性优势，在多类工业缺陷检测中被广泛采用并持续轻量化改进 \cite{Redmon2015_YOLO, Wei2020_MultiTargetDefectYOLOv3, Zhang2021_ModifiedYOLOv3, Cheng2022_YOLOv5Lightweight}。语义分割能够给出像素级缺陷区域，便于后续定量评估与严重度分析；编码器-解码器结构与空洞卷积等设计是提升分割精度的重要方向 \cite{Chen2018_EncoderDecoderSegmentation}。针对工业小样本与多尺度缺陷，研究者在网络结构、特征融合与正负样本不平衡等方面持续改进，例如改进 Faster R-CNN 以适配小样本与小目标 \cite{Ajmi2023_FasterRCNNWeldDefects, Cao2019_ImprovedFasterRCNN}，以及通过级联检测、特征金字塔与特征擦除等机制提升多尺度缺陷识别能力 \cite{Dai2025_CCBFERCNN, Dong2023_ImprovedCascadeRCNN}。
   \item \textbf{迁移学习与预训练：} 工业射线图像与自然图像存在显著领域差异，单纯依赖 ImageNet 预训练可能受限。利用医学射线图像等“成像机理相近”的数据进行预训练并迁移到工业缺陷任务，是缩小领域差异、提升泛化性能的有效思路 \cite{Yu2025_IndustrialDefectRecognition, Irvin2019_CheXpertDataset, Li2010_ImageNet}。
 \end{enumerate}
 
@@ -46,7 +46,7 @@
 \section{国内外发展现状}
 国内外相关研究已在数据集建设、预处理增强、检测/分割模型与系统集成等方面取得进展。预处理方面，滤波去噪、直方图均衡化与对比度增强等方法广泛应用，但固定参数策略难以覆盖不同成像质量与工况变化；面向低质量射线图像的自适应增强与联合优化逐步受到关注 \cite{Hou2020_ReviewWeldDefectDetection, Guo2021_ContrastEnhancementGAN}。模型方面，从 CNN 分类到目标检测与语义分割框架不断演进：两阶段检测（Faster R-CNN 等）在小样本条件下仍具竞争力 \cite{Ajmi2023_FasterRCNNWeldDefects}，多尺度特征融合与正则化策略可提升复杂缺陷识别能力 \cite{Dai2025_CCBFERCNN}；语义分割能够给出像素级缺陷区域，满足缺陷形态量化分析需求 \cite{Ronneberger2015_UNet, Yu2025_IndustrialDefectRecognition}。此外，跨领域预训练与迁移学习用于缓解工业样本稀缺与领域差异问题，医学射线图像预训练提升工业缺陷分割性能的思路具有代表性 \cite{Yu2025_IndustrialDefectRecognition, Irvin2019_CheXpertDataset}。
 
-综合来看，仍存在若干待解决问题：低质量图像下的稳健分割、跨数据集泛化能力提升、小样本条件下的可靠训练策略，以及将模型能力以可用的交互式系统形式落地等。
+综合来看，仍存在若干待解决问题：低质量图像下的稳健分割、跨数据集泛化能力提升、小样本条件下的可靠训练策略（如针对类别不平衡、噪声标注的损失函数改进），以及将模型能力以可用的交互式系统形式落地等 \cite{Chen2022_ImprovedCrossEntropyLoss}。
 
 \section{研究的基本内容与拟解决的主要问题}
 \begin{enumerate}[leftmargin=*]
@@ -86,7 +86,6 @@
 
 \section{参考文献}
 
-\nocite{*}
 \printbibliography[heading=none]
 
 \end{document}
