@@ -30,3 +30,16 @@
   {\cjlu@subsubsectionfont\setstretch{1}}
   {\thesubsubsection\quad}{0pt}{}
 \titlespacing*{\subsubsection}{0pt}{1ex}{1ex}
+
+% Make all hyperlink text black (DOI/URL links and cross-references).
+\makeatletter
+\AtBeginDocument{%
+  \@ifpackageloaded{hyperref}{%
+    \hypersetup{%
+      linkcolor=black,%
+      citecolor=black,%
+      urlcolor=black%
+    }%
+  }{}%
+}
+\makeatother
